@@ -1,8 +1,10 @@
 # IntelliJ files
-js/.idea
-rb/.idea
-java/.idea
-/.idea
-twitter-text.iml
+circle-text.iml
 .DS_Store
 *.sw?
+
+# Node
+node_modules
+
+# Environment
+.env
