@@ -1,6 +1,6 @@
 {
-    "name": "circle-text",
-    "version": "1.1.1",
+    "name": "circle-company-circle-text",
+    "version": "1.0.0",
     "description": "Biblioteca para análise de texto do Circle App.",
     "type": "module",
     "main": "index.js",
