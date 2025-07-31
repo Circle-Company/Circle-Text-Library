@@ -14,7 +14,7 @@
     - urls
     - keywords
 - analize:
-  -sentiment
+  - sentiment
 
 # ✅ Validação
 
