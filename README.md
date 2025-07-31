@@ -100,4 +100,37 @@ const urls = circleText.extract.urls(text)
 // deve retornar: ["https://example.com", "http://test.com"]
 ```
 
-###### Copyright 2025 Circle Company, Inc. Licensed under the Circle License, Version 1.0
+### 💬 Keywords
+
+Extrai as palavras mais importantes de um texto e retorna um array com as keywords em ordem:
+
+```js
+const text =
+    "Esse é um texto de teste com algumas keywords importantes: fome, test, text, keywords, importantes."
+const keywords = circleText.extract.keywords(text)
+// deve retornar: ["keyword", "importante", "texto", "teste", "fome"]
+```
+
+# 🔎 Análize
+
+### 🫀 Sentiment
+
+Extrai as palavras mais importantes de um texto e retorna um array com as keywords em ordem:
+
+```ts
+//tipo do retorno
+const returnType = {
+    sentiment: "positive" | "negative" | "neutral"
+    intensity: number
+}
+```
+
+```js
+const text = "Estou muito feliz com o resultado do projeto!"
+const sentiment = circleText.analize.sentiment(text)
+// deve retornar: { sentiment: "positive", intensity: 0.7 }
+```
+
+### Licença:
+
+Copyright 2025 Circle Company, Inc. Licensed under the Circle License, Version 1.0
