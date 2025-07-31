@@ -16,13 +16,14 @@
         "ecmaVersion": "latest",
         "sourceType": "module"
     },
-    "plugins": ["@typescript-eslint", "react", "rect-native", "jest"],
+    "plugins": ["@typescript-eslint", "react", "react-native", "jest"],
     "rules": {
+        "space-in-parens": ["error", "always"],
         "no-var": 0,
         "@typescript-eslint/ban-ts-comment": "off",
         "react/jsx-uses-react": "off",
         "react/react-in-jsx-scope": "off",
-        "react/jsx-filename-extension": [1, { "extensions": [".js", ".sjsx"] }],
+        "react/jsx-filename-extension": [1, { "extensions": [".js", ".tsx"] }],
         "no-use-before-define": ["error", { "variables": false }],
         "react/prop-types": ["error", { "ignore": ["navigation", "navigation.navigate"] }],
         "@typescript-eslint/no-explicit-any": "off",
