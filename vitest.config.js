@@ -18,11 +18,4 @@ export default defineConfig({
             exclude: ["node_modules/", "test/", "**/*.d.ts", "**/*.test.ts", "**/*.spec.ts"],
         },
     },
-    resolve: {
-        alias: {
-            "@models": path.resolve(__dirname, "./src/models"),
-            "@errors": path.resolve(__dirname, "./src/errors"),
-            "@swipe-engine": path.resolve(__dirname, "./src/swipe-engine"),
-        },
-    },
 })
