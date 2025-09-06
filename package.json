@@ -1,6 +1,6 @@
 {
-    "name": "circle-company-circle-text",
-    "version": "1.0.0",
+    "name": "circle-text-library",
+    "version": "1.0.1",
     "description": "Biblioteca para análise de texto do Circle App.",
     "type": "module",
     "main": "index.js",
@@ -13,7 +13,7 @@
         "sentiment-analysis",
         "validators"
     ],
-    "author": "Circle Company",
+    "author": "Circle Company LTDA",
     "license": "CIRCLE-LICENSE-1.0",
     "devDependencies": {
         "@babel/cli": "^7.4.0",
