@@ -13,7 +13,9 @@ export const URL_REGEX = new RegExp(
 )
 
 // Regex para validação de usernames
-export const USERNAME_REGEX = /^@?(\w{1,15})$/
+// Máximo 20 caracteres, lowercase, letras, números, "." ou "_"
+// Não pode ter mais de 1 "." seguidos e nem começar/terminar com "."
+export const USERNAME_REGEX = /^@?(?!\.)(?!.*\.\.)(?!.*\.$)[a-z0-9_.]{1,20}$/
 
 // Regex para validação de hashtags
 export const HASHTAG_REGEX = /^#?(\w+)$/
