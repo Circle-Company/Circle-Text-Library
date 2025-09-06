@@ -85,6 +85,17 @@ describe("Test circleText lib", () => {
         expect(sentiment.sentiment).toBeTypeOf("string")
         expect(sentiment.sentiment).toEqual("negative")
     })
+
+    it("should analyze negative sentiment", () => {
+        const text = "Estou muito triste com o resultado do projeto."
+        const sentiment = circleText.analize.sentiment(text)
+
+        expect(sentiment).toBeDefined()
+        expect(sentiment.intensity).toBeTypeOf("number")
+        expect(sentiment.intensity).toBeLessThan(0)
+        expect(sentiment.sentiment).toBeTypeOf("string")
+        expect(sentiment.sentiment).toEqual("negative")
+    })
     afterEach(() => {
         vi.clearAllMocks()
     })
