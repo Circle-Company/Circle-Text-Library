@@ -1,136 +1,254 @@
-# 📝 Circle Text - Processamento de texto para Moments
+# 🔧 Circle Text Library - Biblioteca de Validação e Processamento de Texto
 
-**CircleText** resolve o problema de processamento de textos de forma leve rápida para ser usada na interface e sistema do **_Circle App_**.
+CircleText é uma biblioteca JavaScript/TypeScript robusta e profissional para validação, extração e análise de texto, desenvolvida especificamente para o **_Circle App_**, oferecendo uma solução completa e flexível para processamento de conteúdo textual.
 
-# Estrutura
+## 🚀 Características Principais
 
-- validate:
-    - username
-    - hashtags
-    - urls
-- extract:
-    - username
-    - hashtags
-    - urls
-    - keywords
-- analize:
-  - sentiment
+- **✅ Regras Personalizáveis**: Sistema de validação totalmente configurável
+- **🔧 Flexibilidade Total**: Mensagens de erro customizáveis para cada validação
+- **⚡ Performance Otimizada**: Processamento rápido, síncrono e eficiente
+- **🛡️ Segurança Avançada**: Regras robustas de segurança para senhas e dados sensíveis
+- **🔍 Análise Inteligente**: Análise de sentimento com múltiplas palavras por texto (suporte para portugu)
 
-# ✅ Validação
+## 📋 Funcionalidades
 
-### 👤 Nome de usuário
+### ✅ Sistema de Validação
 
-Valida se o nome de usuário está escrito corretamente conforme as regras:
+#### Regras Personalizáveis
 
-- Possui o `@` no início.
-- Mínimo de 4 e máximo de 20 caractéres (exluindo o `@`).
-- Que não começa ou termina com `.`.
-- Que não contém múltiplos `_` e `.` seguidos.
-- Se todos os caractéres estão minúsculos.
+Configure regras específicas para cada tipo de validação:
 
-Exemplos:
-
-```js
-circleText.validation.username("@test_user") // deve retornar "true"
-circleText.validation.username("test_user") // deve retornar "true"
-circleText.validation.username("invalid user") // deve retornar "false"
-circleText.validation.username("") // deve retornar "false"
+```typescript
+const circleText = new CircleText({
+    validationRules: {
+        username: {
+            minLength: { enabled: true, value: 4 },
+            maxLength: { enabled: true, value: 20 },
+            allowedCharacters: { enabled: true, value: "[a-z0-9_]." },
+            cannotStartWith: {
+                enabled: true,
+                value: "_.",
+                description: "Username não pode começar com underscore ou ponto"
+            },
+            cannotContainConsecutive: {
+                enabled: true,
+                value: "._",
+                description: "Não pode conter pontos '.' ou underscores consecutivos"
+            },
+            requireCapitalization: { enabled: true, value: true },
+            allowAtPrefix: { enabled: true, value: "@" }
+        },
+        hashtag: {
+            requiredPrefix: { enabled: true, value: "#" },
+            minLength: { enabled: true, value: 4 },
+            allowedCharacters: { enabled: true, value: "[a-zA-Z0-9#]" },
+            cannotStartWith: {
+                enabled: true,
+                value: "[0-9]",
+                description: "Hashtag não pode começar com número"
+            }
+        }
+    }
+})
 ```
 
-### #️⃣ Hashtags
+#### Tipos de Validação Disponíveis
 
-- valida se o texto inserido inicia com `#`
-- valida que a hashtag não tenha espaçamento no meio do texto
+##### 👤 Username
 
-Exemplos:
+Validação robusta de nomes de usuário com regras avançadas:
 
-```js
-circleText.validation.hashtag("#example") // deve retornar "true"
-circleText.validation.hashtag("example") // deve retornar "false"
-circleText.validation.hashtag("#invalid hashtag") // deve retornar "false"
-circleText.validation.hashtag("") // deve retornar "false"
+- **Caracteres especiais**: Configuração precisa de caracteres permitidos/proibidos
+- **Capitalização**: Controle de maiúsculas/minúsculas obrigatórias
+- **Padrões proibidos**: Prevenção de caracteres consecutivos e início/fim inválidos
+- **Compatibilidade**: Suporte ao prefixo `@`
+
+```typescript
+const result = circleText.validate.username("validUser123")
+// ✅ { isValid: true, errors: [] }
 ```
 
-### 🌐 Urls
+##### #️⃣ Hashtag
 
-- valida se o texto começa com `https://` ou `http://`
-- valida formato do protocolo, autenticação, host, porta, e path da url estão corretos
+Validação completa de hashtags:
 
-Exemplos:
+- **Prefixo obrigatório**: Validação do símbolo `#`
+- **Comprimento configurável**: Mínimo e máximo personalizáveis
+- **Caracteres permitidos**: Controle de alfabéticos/numéricos
+- **Restrições especiais**: Início/fim proibidos
 
-```js
-circleText.validation.url("https://example.com") // deve retornar "true"
-circleText.validation.url("http://example.com") // deve retornar "true"
-circleText.validation.url("example.com", false) // deve retornar "true"
-circleText.validation.url("invalid-url") // deve retornar "false"
-circleText.validation.url("") // deve retornar "false"
+```typescript
+const result = circleText.validate.hashtag("#validtag")
+// ✅ { isValid: true, errors: [] }
+```
+
+##### 🌐 URL
+
+Validação completa de URLs:
+
+- **Protocolos**: HTTP/HTTPS obrigatórios ou opcionais
+- **Comprimento**: Limites de tamanho configuráveis
+- **Protocolos permitidos**: Lista configurável de protocolos aceitos
+
+```typescript
+const result = circleText.validate.url("https://example.com")
+// ✅ { isValid: true, errors: [] }
+```
+
+##### 📝 Description
+
+Validação de descrições de perfil:
+
+- **Comprimento**: Limites min/max configuráveis
+- **Caracteres permitidos**: Regex personalizável
+- **Conteúdo proibido**: URL, menções, hashtags bloqueáveis
+- **Alfanuméricos**: Exigência de caracteres alfanuméricos
+
+```typescript
+const result = circleText.validate.description("Descrição válida")
+// ✅ { isValid: true, errors: [] }
+```
+
+##### 👤 Name
+
+Validação de nomes de pessoa:
+
+- **Capitalização**: Primeira letra maiúscula obrigatória
+- **Nome completo**: Requer primeiro e último nome
+- **Palavras proibidas**: Lista de nomes bloqueados
+- **Caracteres**: Sem números ou caracteres especiais
+- **Acentos**: Suporte completo a caracteres acentuados
+
+```typescript
+const result = circleText.validate.name("João Silva")
+// ✅ { isValid: true, errors: [] }
+```
+
+##### 🔐 Password (NOVA!)
+
+Validação de senhas com segurança avançada:
+
+- **Complexidade**: Maiúsculas, minúsculas, números, caracteres especiais
+- **Comprimento**: Limites de segurança (8-32 caracteres)
+- **Senhas comuns**: Bloqueio automático de senhas vulneráveis
+- **Padrões inseguros**: Contadores repetidos consecutivos
+- **Sequências**: Bloqueio de padrões sequenciais (abc, 123)
+- **Caracteres especiais**: Controle preciso de caracteres permitidos
+- **Conteúdo proibido**: Sem username/email na senha
+
+```typescript
+const result = circleText.validate.password("MyStr0ng!A")
+// ✅ { isValid: true, errors: [] }
+```
+
+### 📤 Sistema de Extração
+
+#### Extração Unificada
+
+Extraia múltiplos tipos de conteúdo em uma única operação:
+
+```typescript
+const text = "Check out @test_user and visit https://example.com! #tech #coding"
+const result = circleText.extract.content(text, {
+    mentions: true,
+    urls: true,
+    hashtags: true,
+    keywords: false
+})
+
+// Resultado apenas com os tipos solicitados:
+// ✅ { mentions: ["@test_user"], urls: ["https://example.com"], hashtags: ["#tech", "#coding"] }
+```
+
+#### Extração Individual
+
+##### 👤 Menções
+
+```typescript
+const text = "Check out @user1 and @user2!"
+const mentions = circleText.extract.content(text, { mentions: true })
+// ✅ { mentions: ["@user1", "@user2"] }
+```
+
+##### #️⃣ Hashtags
+
+```typescript
+const text = "Amor pela #tecnologia e #programacao!"
+const hashtags = circleText.extract.content(text, { hashtags: true })
+// ✅ { hashtags: ["#tecnologia", "#programacao"] }
+```
+
+##### 🌐 URLs
+
+```typescript
+const text = "Veja https://example.com e http://test.com!"
+const urls = circleText.extract.content(text, { urls: true })
+// ✅ { urls: ["https://example.com", "http://test.com"] }
+```
+
+##### 🔍 Keywords
+
+```typescript
+const text = "Inteligência Artificial revoluciona programação e tecnologia"
+const keywords = circleText.extract.keywords(text)
+// ✅ ["inteligência", "artificial", "revoluciona", "programação", "tecnologia"]
 ```
 
 ---
 
-# ⬆️ Extração
+### 🫀 Análise de Sentimento
 
-### 👤 Nome de usuário
+#### Análise Básica
 
-Extrai do texto as menções, valida o formato e retorna um array com as menções válidas:
-
-```js
-const text = "Check out @test_user and @another_user!"
-const mentions = circleText.extract.mentions(text)
-// deve retornar: ["@test_user", "@another_user"]
+```typescript
+const text = "Estou muito satisfeito com os resultados!"
+const sentiment = circleText.extract.sentiment(text)
+// ✅ { sentiment: "positive", intensity: 0.8 }
 ```
 
-### #️⃣ Hashtags
+#### Suporte Avançado
 
-Extrai do texto as hashtags, valida o formato e retorna um array com as tags válidas:
+- **Múltiplas palavras**: Análise de múltiplas palavras por texto
+- **Intensidade numérica**: Pontuação precisa do sentimento (0-1)
+- **Linguagem portuguesa**: Otimizado para textos em português
+- **Lexicons**: Dados especializados de palavras sentimentais
 
-```js
-const text = "Check out #example and #test!"
-const hashtags = circleText.extract.hashtags(text)
-// deve retornar: ["#example", "#test"]
+---
+
+## 🔧 Instalação e Configuração
+
+### Instalação
+
+```bash
+npm install
 ```
 
-### 🌐 Urls
+### Uso Básico
 
-Extrai do texto as urls, valida o formato e retorna um array com as urls válidas:
+```typescript
+import { CircleText } from "./index"
 
-```js
-const text = "Visit https://example.com and http://test.com for more info."
-const urls = circleText.extract.urls(text)
-// deve retornar: ["https://example.com", "http://test.com"]
+const circleText = new CircleText({
+    validationRules: {
+        // Suas regras personalizadas aqui
+    }
+})
+
+// Validação
+const isValidUser = circleText.validate.username("testuser")
+
+// Extração
+const extracted = circleText.extract.content("text with @mentions and #hashtags")
+
+// Análise
+const sentiment = circleText.extract.sentiment("texto para análise")
 ```
 
-### 💬 Keywords
+### 📄 Licença
 
-Extrai as palavras mais importantes de um texto e retorna um array com as keywords em ordem:
+**Copyright 2025 Circle Company, Inc.**  
+Licensed under the Circle License, Version 1.0
 
-```js
-const text =
-    "Esse é um texto de teste com algumas keywords importantes: fome, test, text, keywords, importantes."
-const keywords = circleText.extract.keywords(text)
-// deve retornar: ["keyword", "importante", "texto", "teste", "fome"]
-```
+---
 
-# 🔎 Análize
-
-### 🫀 Sentiment
-
-Extrai as palavras mais importantes de um texto e retorna um array com as keywords em ordem:
-
-```ts
-//tipo do retorno
-const returnType = {
-    sentiment: "positive" | "negative" | "neutral"
-    intensity: number
-}
-```
-
-```js
-const text = "Estou muito feliz com o resultado do projeto!"
-const sentiment = circleText.analize.sentiment(text)
-// deve retornar: { sentiment: "positive", intensity: 0.7 }
-```
-
-### Licença:
-
-Copyright 2025 Circle Company, Inc. Licensed under the Circle License, Version 1.0
+**CircleText** - Sua solução completa para processamento inteligente de texto! 🚀
