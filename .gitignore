@@ -1,10 +1,6 @@
-# IntelliJ files
 circle-text.iml
 .DS_Store
 *.sw?
-
-# Node
 node_modules
-
-# Environment
 .env
+build

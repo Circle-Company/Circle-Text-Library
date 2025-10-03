@@ -15,5 +15,6 @@ export function capitalizeFirstLetter(text: string): string {
 }
 
 export function invertStr(str: string): string {
+    if (!str) return ""
     return str.split("").reverse().join("")
 }

@@ -1,4 +1,4 @@
-import { Timezone, TimezoneCodes } from "../timezone"
+import { Timezone, TimezoneCodes } from "../index"
 import { beforeEach, describe, expect, it } from "vitest"
 
 describe("Timezone", () => {

@@ -2,101 +2,74 @@
 // Licensed under the Circle License, Version 1.0
 
 import {
-    HashtagValidatorFunctionProps,
-    HashtagsExtractorProps,
-    KeywordsExtractorProps,
-    MentionsExtractorProps,
-    SentimentAnalizeFunctionProps,
-    UrlValidatorFunctionProps,
-    UrlsExtractorProps,
-    UsernameValidatorFunctionProps
-} from "@/types"
-import { KeywordExtractor, KeywordExtractorConfig } from "./src/classes/keywordExtractor"
+    CircleTextAnalize,
+    CircleTextExtract,
+    CircleTextProps,
+    CircleTextTransform,
+    CircleTextValidation
+} from "./src/types"
 import {
-    SentimentExtractor,
-    SentimentExtractorConfig,
-    SentimentReturnProps
-} from "./src/classes/sentimentExtractor"
-import { Timezone, TimezoneCodes, TimezoneConfig } from "./src/classes/timezone"
+    DescriptionValidationRules,
+    ExtractOptions,
+    HashtagValidationRules,
+    NameValidationRules,
+    PasswordValidationRules,
+    UrlValidationRules,
+    UsernameValidationRules,
+    ValidationConfig,
+    ValidationResult
+} from "./src/types"
+import { SentimentExtractor, SentimentReturnProps } from "./src/classes/sentimentExtractor"
+import { Timezone, TimezoneCodes } from "./src/classes/timezone"
 import {
     capitalizeFirstLetter,
     convertNumToShortUnitText,
     formatNumWithDots,
     formatSliceNumWithDots
 } from "./src/conversor"
-import {
-    extractHashtags,
-    extractMentions,
-    extractUrls,
-    isValidHashtag,
-    isValidUrl,
-    isValidUsername
-} from "./src/validators"
 
-export interface CircleTextAnalize {
-    sentiment: SentimentAnalizeFunctionProps
-}
-
-export interface CircleTextValidation {
-    username: UsernameValidatorFunctionProps
-    hashtag: HashtagValidatorFunctionProps
-    url: UrlValidatorFunctionProps
-}
-export interface CircleTextExtract {
-    mentions: MentionsExtractorProps
-    hashtags: HashtagsExtractorProps
-    urls: UrlsExtractorProps
-    keywords: KeywordsExtractorProps
-}
-
-export interface CircleTextTransform {
-    number: {
-        formatWithDots: (num: number) => string
-        convertToShortUnitText: (number: number) => string
-        formatSliceWithDots: (props: { text: string; size: number }) => string
-    }
-    text: {
-        capitalizeFirstLetter: (text: string) => string
-    }
-    timezone: Timezone
-}
-
-// Props de configuração (caso queira extender futuramente)
-export interface CircleTextProps {
-    keywordConfig?: KeywordExtractorConfig // Configuração opcional do extrator de keywords
-    sentimentConfig?: SentimentExtractorConfig // Configuração opcional do extrator de sentimento
-    timezoneConfig?: TimezoneConfig // Configuração opcional do timezone
-}
+import { Extractor } from "./src/classes/extractor"
+import { KeywordExtractor } from "./src/classes/keywordExtractor"
+import { Validator } from "./src/classes/validator"
 
 // Classe principal
 export class CircleText {
-    public analize: CircleTextAnalize
     public validate: CircleTextValidation
     public extract: CircleTextExtract
     public transform: CircleTextTransform
+    private validator: Validator
 
-    constructor(config?: CircleTextProps) {
-        this.analize = {
-            sentiment: (text: string): SentimentReturnProps =>
-                new SentimentExtractor(config?.sentimentConfig).analyze(text)
-        }
+    constructor(config: CircleTextProps) {
+        // Inicializa o gerenciador de validação com regras customizadas
+        this.validator = new Validator(config.validationRules)
 
         this.validate = {
-            username: isValidUsername,
-            hashtag: isValidHashtag,
-            url: isValidUrl
+            username: this.validator.username.bind(this.validator),
+            hashtag: this.validator.hashtag.bind(this.validator),
+            url: this.validator.url.bind(this.validator),
+            description: this.validator.description.bind(this.validator),
+            name: this.validator.name.bind(this.validator),
+            password: this.validator.password.bind(this.validator)
         }
 
         this.extract = {
-            mentions: extractMentions,
-            hashtags: extractHashtags,
-            urls: extractUrls,
+            content: (text: string, options?: ExtractOptions) => {
+                const extractor = new Extractor(text)
+                // Se nenhuma opção fornecida, extrair tudo por padrão
+                if (options === undefined) {
+                    return extractor.extract({ mentions: true, hashtags: true, urls: true })
+                }
+                return extractor.extract(options)
+            },
             keywords: (text: string): string[] =>
-                new KeywordExtractor(config?.keywordConfig).extract(text)
+                new KeywordExtractor(config.keywordConfig).extract(text),
+
+            sentiment: (text: string): SentimentReturnProps =>
+                new SentimentExtractor(config.sentimentConfig).analyze(text)
         }
 
         this.transform = {
-            timezone: new Timezone(config?.timezoneConfig?.timezoneCode ?? TimezoneCodes.UTC),
+            timezone: new Timezone(config.timezoneConfig?.timezoneCode ?? TimezoneCodes.UTC),
             text: {
                 capitalizeFirstLetter: capitalizeFirstLetter
             },
