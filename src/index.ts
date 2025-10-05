@@ -2,38 +2,27 @@
 // Licensed under the Circle License, Version 1.0
 
 import {
-    CircleTextAnalize,
     CircleTextExtract,
     CircleTextProps,
     CircleTextTransform,
     CircleTextValidation
-} from "./src/types"
-import {
-    DescriptionValidationRules,
-    ExtractOptions,
-    HashtagValidationRules,
-    NameValidationRules,
-    PasswordValidationRules,
-    UrlValidationRules,
-    UsernameValidationRules,
-    ValidationConfig,
-    ValidationResult
-} from "./src/types"
-import { SentimentExtractor, SentimentReturnProps } from "./src/classes/sentimentExtractor"
-import { Timezone, TimezoneCodes } from "./src/classes/timezone"
+} from "./types"
+import { SentimentExtractor, SentimentReturnProps } from "./classes/sentimentExtractor/index.js"
+import { Timezone, TimezoneCodes } from "./classes/timezone/index.js"
 import {
     capitalizeFirstLetter,
     convertNumToShortUnitText,
     formatNumWithDots,
     formatSliceNumWithDots
-} from "./src/conversor"
+} from "./conversor/index.js"
 
-import { Extractor } from "./src/classes/extractor"
-import { KeywordExtractor } from "./src/classes/keywordExtractor"
-import { Validator } from "./src/classes/validator"
+import { ExtractOptions } from "./types"
+import { Extractor } from "./classes/extractor.js"
+import { KeywordExtractor } from "./classes/keywordExtractor.js"
+import { Validator } from "./classes/validator/index.js"
 
 // Classe principal
-export class CircleText {
+export class CircleTextLibrary {
     public validate: CircleTextValidation
     public extract: CircleTextExtract
     public transform: CircleTextTransform
