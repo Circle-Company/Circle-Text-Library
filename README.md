@@ -8,7 +8,8 @@ CircleText é uma biblioteca JavaScript/TypeScript robusta e profissional para v
 - **🔧 Flexibilidade Total**: Mensagens de erro customizáveis para cada validação
 - **⚡ Performance Otimizada**: Processamento rápido, síncrono e eficiente
 - **🛡️ Segurança Avançada**: Regras robustas de segurança para senhas e dados sensíveis
-- **🔍 Análise Inteligente**: Análise de sentimento com múltiplas palavras por texto (suporte para portugu)
+- **🔍 Análise Inteligente**: Análise de sentimento com múltiplas palavras por texto (suporte para português)
+- **🌍 Gerenciamento de Timezone**: Conversão precisa entre fusos horários com suporte completo
 
 ## 📋 Funcionalidades
 
@@ -215,6 +216,100 @@ const sentiment = circleText.extract.sentiment(text)
 
 ---
 
+### 🌍 Sistema de Timezone
+
+#### Conversão de Fusos Horários
+
+Sistema completo de gerenciamento de timezone com suporte a 14 fusos horários principais:
+
+```typescript
+import { Timezone, TimezoneCodes } from "./src/classes/timezone"
+
+// Criar instância de timezone
+const brtTimezone = new Timezone(TimezoneCodes.BRT)
+const utcTimezone = new Timezone(TimezoneCodes.UTC)
+```
+
+#### Fusos Horários Suportados
+
+| Código | Descrição                  | Offset (horas) |
+| ------ | -------------------------- | -------------- |
+| `UTC`  | Coordinated Universal Time | 0              |
+| `BRT`  | Brasília Time              | -3             |
+| `BRST` | Brasília Summer Time       | -2             |
+| `EST`  | Eastern Standard Time      | -5             |
+| `EDT`  | Eastern Daylight Time      | -4             |
+| `CST`  | Central Standard Time      | -6             |
+| `CDT`  | Central Daylight Time      | -5             |
+| `MST`  | Mountain Standard Time     | -7             |
+| `MDT`  | Mountain Daylight Time     | -6             |
+| `PST`  | Pacific Standard Time      | -8             |
+| `PDT`  | Pacific Daylight Time      | -7             |
+| `AKST` | Alaska Standard Time       | -9             |
+| `AKDT` | Alaska Daylight Time       | -8             |
+| `HST`  | Hawaii Standard Time       | -10            |
+
+#### Conversões Principais
+
+##### UTC para Local
+
+```typescript
+const utcDate = new Date("2024-01-15T15:30:00Z")
+const brtTimezone = new Timezone(TimezoneCodes.BRT)
+
+const localDate = brtTimezone.UTCToLocal(utcDate)
+// ✅ 2024-01-15T12:30:00Z (15:30 UTC - 3h = 12:30 BRT)
+```
+
+##### Local para UTC
+
+```typescript
+const localDate = new Date("2024-01-15T12:30:00Z") // Simula hora local BRT
+const brtTimezone = new Timezone(TimezoneCodes.BRT)
+
+const utcDate = brtTimezone.localToUTC(localDate)
+// ✅ 2024-01-15T15:30:00Z (12:30 local + 3h = 15:30 UTC)
+```
+
+#### Métodos Auxiliares
+
+```typescript
+const timezone = new Timezone(TimezoneCodes.BRT)
+
+// Obter offset e código
+const offset = timezone.getTimezoneOffset() // -3 (horas)
+const code = timezone.getCurrentTimezoneCode() // "BRT"
+
+// Listar todos os códigos disponíveis
+const allCodes = timezone.getTimezoneCodes()
+// ✅ ["UTC", "BRT", "BRST", "EST", "EDT", "CST", "CDT", "MST", "MDT", "PST", "PDT", "AKST", "AKDT", "HST"]
+
+// Detecção automática do timezone do sistema
+const currentTimezone = Timezone.getCurrentTimezone()
+// ✅ Detecta automaticamente o timezone do sistema
+```
+
+#### Validação e Performance
+
+```typescript
+const timezone = new Timezone(TimezoneCodes.BRT)
+
+// ✅ Aceita datas válidas
+const validDate = new Date("2024-01-15T15:30:00Z")
+const result = timezone.UTCToLocal(validDate) // ✅ Funciona
+
+// ❌ Rejeita datas inválidas
+try {
+    timezone.UTCToLocal(new Date("invalid"))
+} catch (error) {
+    console.log(error.message) // "Data inválida fornecida"
+}
+
+// ✅ Performance otimizada: <100ms para 1000 conversões
+```
+
+---
+
 ## 🔧 Instalação e Configuração
 
 ### Instalação
@@ -227,7 +322,9 @@ npm install
 
 ```typescript
 import { CircleText } from "./index"
+import { Timezone, TimezoneCodes } from "./src/classes/timezone"
 
+// Validação e Extração
 const circleText = new CircleText({
     validationRules: {
         // Suas regras personalizadas aqui
@@ -240,8 +337,13 @@ const isValidUser = circleText.validate.username("testuser")
 // Extração
 const extracted = circleText.extract.content("text with @mentions and #hashtags")
 
-// Análise
+// Análise de Sentimento
 const sentiment = circleText.extract.sentiment("texto para análise")
+
+// Gerenciamento de Timezone
+const brtTimezone = new Timezone(TimezoneCodes.BRT)
+const utcDate = new Date("2024-01-15T15:30:00Z")
+const localDate = brtTimezone.UTCToLocal(utcDate)
 ```
 
 ### 📄 Licença
