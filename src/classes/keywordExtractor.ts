@@ -1,6 +1,6 @@
-import PT_STOPWORDS from "../data/pt-br/stopwords.json"
-import PT_SUFFIXES from "../data/pt-br/suffixes.json"
-import PT_SLANG_MAP from "../data/pt-br/slangMap.json"
+import PT_STOPWORDS from "../data/pt-br/stopwords.json" with { type: "json" }
+import PT_SUFFIXES from "../data/pt-br/suffixes.json" with { type: "json" }
+import PT_SLANG_MAP from "../data/pt-br/slangMap.json" with { type: "json" }
 
 const SLANG_MAP: Record<string, string> = PT_SLANG_MAP
 
