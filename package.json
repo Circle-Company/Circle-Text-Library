@@ -1,20 +1,66 @@
 {
     "name": "circle-text-library",
-    "version": "1.0.3",
-    "description": "Biblioteca para análise de texto do Circle App.",
+    "version": "1.0.4",
+    "description": "Biblioteca JavaScript/TypeScript para validação, extração e análise de texto, desenvolvida para o Circle App",
     "type": "module",
-    "main": "index.js",
+    "main": "./dist/src/index.js",
+    "module": "./dist/src/index.js",
+    "types": "./dist/src/index.d.ts",
+    "exports": {
+        ".": {
+            "import": "./dist/src/index.js",
+            "types": "./dist/src/index.d.ts"
+        },
+        "./timezone": {
+            "import": "./dist/src/classes/timezone/index.js",
+            "types": "./dist/src/classes/timezone/index.d.ts"
+        },
+        "./sentiment": {
+            "import": "./dist/src/classes/sentimentExtractor/index.js",
+            "types": "./dist/src/classes/sentimentExtractor/index.d.ts"
+        }
+    },
+    "files": [
+        "dist",
+        "README.md",
+        "LICENSE"
+    ],
     "scripts": {
-        "start": "node index.js",
-        "test": "vitest"
+        "build": "tsc && npm run build:types",
+        "build:types": "tsc --emitDeclarationOnly --outDir dist",
+        "prepublishOnly": "npm run build",
+        "test": "vitest",
+        "test:coverage": "vitest --coverage",
+        "lint": "eslint src/**/*.ts",
+        "lint:fix": "eslint src/**/*.ts --fix",
+        "clean": "rm -rf dist",
+        "dev": "tsc --watch"
     },
     "keywords": [
         "text-analysis",
         "sentiment-analysis",
-        "validators"
+        "validators",
+        "timezone",
+        "text-processing",
+        "validation",
+        "extraction",
+        "circle-app",
+        "typescript",
+        "javascript"
     ],
     "author": "Circle Company LTDA",
     "license": "CIRCLE-LICENSE-1.0",
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/circle-company/circle-text-library.git"
+    },
+    "bugs": {
+        "url": "https://github.com/circle-company/circle-text-library/issues"
+    },
+    "homepage": "https://github.com/circle-company/circle-text-library#readme",
+    "engines": {
+        "node": ">=16.0.0"
+    },
     "devDependencies": {
         "@babel/cli": "^7.4.0",
         "@babel/core": "^7.4.0",
@@ -24,6 +70,7 @@
         "@babel/preset-env": "^7.4.0",
         "@typescript-eslint/eslint-plugin": "^8.38.0",
         "@typescript-eslint/parser": "^8.38.0",
+        "@vitest/coverage-v8": "^3.2.4",
         "babel-eslint": "^10.0.1",
         "babel-plugin-add-module-exports": "^1.0.2",
         "eslint": "^4.19.1",
@@ -35,6 +82,7 @@
         "husky": "^9.1.7",
         "lint-staged": "^16.1.2",
         "prettier": "^3.6.2",
+        "typescript": "^5.0.0",
         "vitest": "^3.2.4"
     },
     "dependencies": {
