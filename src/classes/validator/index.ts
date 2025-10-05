@@ -354,8 +354,8 @@ export class Validator {
             const urlProtocol = url.match(/^([a-zA-Z]+):/)
 
             if (urlProtocol) {
-                const protocol = urlProtocol[1].toLowerCase()
-                if (!protocols.includes(protocol)) {
+                const protocol = urlProtocol[1]?.toLowerCase()
+                if (protocol && !protocols.includes(protocol)) {
                     errors.push(
                         `Protocolo '${protocol}' não é permitido. Protocolos aceitos: ${protocols.join(", ")}`
                     )
@@ -593,7 +593,7 @@ export class Validator {
         if (rules.requireCapitalization?.enabled && rules.requireCapitalization.value) {
             const words = name.trim().split(/\s+/)
             const allWordsCapitalized = words.every(
-                (word) => word.length > 0 && word[0] === word[0].toUpperCase()
+                (word) => word.length > 0 && word[0] === word[0]?.toUpperCase()
             )
 
             if (!allWordsCapitalized) {
@@ -876,7 +876,7 @@ export class Validator {
                     rules.requireDigitAtPosition.description ||
                         "Posição especificada para dígito é inválida"
                 )
-            } else if (!/\d/.test(password[position])) {
+            } else if (password[position] && !/\d/.test(password[position])) {
                 errors.push(
                     rules.requireDigitAtPosition.description ||
                         `Senha deve conter um dígito na posição ${position}`
