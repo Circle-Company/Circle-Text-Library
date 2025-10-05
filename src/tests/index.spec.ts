@@ -3,10 +3,10 @@
 
 import { describe, expect, it } from "vitest"
 
-import { CircleText } from "../../index.js"
+import { CircleTextLibrary } from "../index"
 
 describe("Circle Text Library Tests", () => {
-    const circleText = new CircleText({
+    const circleText = new CircleTextLibrary({
         validationRules: {
             username: {
                 minLength: {
