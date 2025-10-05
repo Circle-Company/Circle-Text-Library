@@ -1,9 +1,9 @@
-import CONNECTORS from "../../data/pt-br/connectors.json"
-import EMOJI_SCORES from "../../data/pt-br/emojiScore.json"
-import INTENSITY_WORDS from "../../data/pt-br/intensityWords.json"
-import IRONY_INDICATORS from "../../data/pt-br/ironyIndicators.json"
-import PT_SENTIMENT_WORDS from "../../data/pt-br/sentimentWords.json"
-import STOPWORDS from "../../data/pt-br/stopwords.json"
+import CONNECTORS from "../../data/pt-br/connectors.json" with { type: "json" }
+import EMOJI_SCORES from "../../data/pt-br/emojiScore.json" with { type: "json" }
+import INTENSITY_WORDS from "../../data/pt-br/intensityWords.json" with { type: "json" }
+import IRONY_INDICATORS from "../../data/pt-br/ironyIndicators.json" with { type: "json" }
+import PT_SENTIMENT_WORDS from "../../data/pt-br/sentimentWords.json" with { type: "json" }
+import STOPWORDS from "../../data/pt-br/stopwords.json" with { type: "json" }
 
 export interface SentimentExtractorConfig {
     enableCache?: boolean
@@ -105,7 +105,7 @@ export class SentimentExtractor {
             const token = tokens[i]
 
             // Análise de negação
-            if (INTENSITY_WORDS.hasOwnProperty(token)) {
+            if (token && INTENSITY_WORDS.hasOwnProperty(token)) {
                 const intensityValue = INTENSITY_WORDS[token as keyof typeof INTENSITY_WORDS]
 
                 if (intensityValue < 0) {
@@ -124,7 +124,7 @@ export class SentimentExtractor {
             const connectorValue = CONNECTORS[token as keyof typeof CONNECTORS]
             if (connectorValue !== undefined) {
                 // Conectores adversativos têm efeito mais forte
-                if (["mas", "porem", "entretanto", "contudo"].includes(token)) {
+                if (token && ["mas", "porem", "entretanto", "contudo"].includes(token)) {
                     contextModifier = connectorValue // Reset para valor adversativo
                 } else {
                     contextModifier *= connectorValue
