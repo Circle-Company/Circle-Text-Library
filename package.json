@@ -1,6 +1,6 @@
 {
     "name": "circle-text-library",
-    "version": "1.0.4",
+    "version": "1.0.5",
     "description": "Biblioteca JavaScript/TypeScript para validação, extração e análise de texto, desenvolvida para o Circle App",
     "type": "module",
     "main": "./dist/src/index.js",
