@@ -10,6 +10,7 @@ CircleText é uma biblioteca JavaScript/TypeScript robusta e profissional para v
 - **🛡️ Segurança Avançada**: Regras robustas de segurança para senhas e dados sensíveis
 - **🔍 Análise Inteligente**: Análise de sentimento com múltiplas palavras por texto (suporte para português)
 - **🌍 Gerenciamento de Timezone**: Conversão precisa entre fusos horários com suporte completo
+- **📝 Rich Text**: Formatação enriquecida com identificação automática de menções, hashtags e URLs
 
 ## 📋 Funcionalidades
 
@@ -194,6 +195,62 @@ const text = "Inteligência Artificial revoluciona programação e tecnologia"
 const keywords = circleText.extract.keywords(text)
 // ✅ ["inteligência", "artificial", "revoluciona", "programação", "tecnologia"]
 ```
+
+---
+
+### 📝 Sistema de Rich Text
+
+#### Formatação de Texto Enriquecido
+
+Sistema completo para converter texto normal em formato enriquecido com identificação automática de menções, hashtags e URLs:
+
+```typescript
+const richText = circleText.transform.text.richText
+
+// Configurar texto com IDs das entidades
+richText.setText("Olá @alice veja #tech em https://example.com", {
+    mentions: { alice: "user_123" },
+    hashtags: { tech: "tag_456" }
+})
+
+// Obter texto enriquecido
+const enriched = richText.getEnrichedText()
+// ✅ "Olá [txt:alice, ent:mention, id:user_123] veja [txt:tech, ent:hashtag, id:tag_456] em [txt:https://example.com, ent:url]"
+
+// Converter de volta para normal
+const normal = richText.formatToNormal()
+// ✅ "Olá @alice veja #tech em https://example.com"
+
+// Formato para UI com posições
+const uiFormat = richText.formatToUI()
+// ✅ {
+//   text: "Olá @alice veja #tech em https://example.com",
+//   entities: [
+//     { type: "text", text: "Olá ", start: 0, end: 4 },
+//     { type: "mention", text: "alice", id: "user_123", start: 4, end: 10 },
+//     { type: "text", text: " veja ", start: 10, end: 16 },
+//     { type: "hashtag", text: "tech", id: "tag_456", start: 16, end: 21 },
+//     ...
+//   ]
+// }
+
+// Extrair entidades
+const entities = richText.extractEntities()
+// ✅ {
+//   mentions: [{ text: "alice", id: "user_123" }],
+//   hashtags: [{ text: "tech", id: "tag_456" }],
+//   urls: [{ text: "https://example.com" }]
+// }
+```
+
+#### Recursos do Rich Text
+
+- **🔗 Identificação Automática**: Detecta @menções, #hashtags e URLs
+- **🆔 Mapeamento de IDs**: Associe IDs customizados às entidades
+- **📍 Posições Precisas**: Retorna posições exatas (start/end) para renderização
+- **🔄 Conversão Bidirecional**: Normal ↔ Enriquecido
+- **⚡ 100% Síncrono**: Sem promises ou async/await
+- **🎯 IDs Opcionais**: Funciona com ou sem IDs
 
 ---
 
