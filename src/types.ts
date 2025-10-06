@@ -5,6 +5,7 @@ import { SentimentExtractorConfig, SentimentReturnProps } from "./classes/sentim
 import { Timezone, TimezoneConfig } from "./classes/timezone"
 
 import { KeywordExtractorConfig } from "./classes/keywordExtractor"
+import { RichText } from "./classes/rich.text"
 import { Validator } from "./classes/validator"
 
 export interface CircleTextAnalize {
@@ -34,6 +35,7 @@ export interface CircleTextTransform {
     }
     text: {
         capitalizeFirstLetter: (text: string) => string
+        richText: RichText
     }
     timezone: Timezone
 }
