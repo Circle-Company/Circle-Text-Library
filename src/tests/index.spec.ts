@@ -3,10 +3,10 @@
 
 import { describe, expect, it } from "vitest"
 
-import { CircleTextLibrary } from "../index"
+import { TextLibrary } from "../index"
 
-describe("Circle Text Library Tests", () => {
-    const circleText = new CircleTextLibrary({
+describe("Text Library Tests", () => {
+    const circleText = new TextLibrary({
         validationRules: {
             username: {
                 minLength: {
@@ -716,6 +716,152 @@ describe("Circle Text Library Tests", () => {
         })
     })
 
+    describe("Timezone Offset Conversion", () => {
+        it("should import Timezone and TimezoneCodes correctly", async () => {
+            const { Timezone, TimezoneCodes } = await import("../classes/timezone/index.js")
+
+            expect(Timezone).toBeDefined()
+            expect(TimezoneCodes).toBeDefined()
+            expect(Timezone.getTimezoneFromOffset).toBeDefined()
+        })
+
+        it("should convert offset 0 to UTC", async () => {
+            const { Timezone, TimezoneCodes } = await import("../classes/timezone/index.js")
+
+            const result = Timezone.getTimezoneFromOffset(0)
+            expect(result).toBe(TimezoneCodes.UTC)
+        })
+
+        it("should convert offset -3 to BRT", async () => {
+            const { Timezone, TimezoneCodes } = await import("../classes/timezone/index.js")
+
+            const result = Timezone.getTimezoneFromOffset(-3)
+            expect(result).toBe(TimezoneCodes.BRT)
+        })
+
+        it("should convert offset -5 to EST", async () => {
+            const { Timezone, TimezoneCodes } = await import("../classes/timezone/index.js")
+
+            const result = Timezone.getTimezoneFromOffset(-5)
+            expect(result).toBe(TimezoneCodes.EST)
+        })
+
+        it("should convert offset -8 to PST", async () => {
+            const { Timezone, TimezoneCodes } = await import("../classes/timezone/index.js")
+
+            const result = Timezone.getTimezoneFromOffset(-8)
+            expect(result).toBe(TimezoneCodes.PST)
+        })
+
+        it("should convert offset -10 to HST", async () => {
+            const { Timezone, TimezoneCodes } = await import("../classes/timezone/index.js")
+
+            const result = Timezone.getTimezoneFromOffset(-10)
+            expect(result).toBe(TimezoneCodes.HST)
+        })
+
+        it("should return UTC for unknown offset", async () => {
+            const { Timezone, TimezoneCodes } = await import("../classes/timezone/index.js")
+
+            const result = Timezone.getTimezoneFromOffset(-15)
+            expect(result).toBe(TimezoneCodes.UTC)
+        })
+
+        it("should return UTC for positive offset", async () => {
+            const { Timezone, TimezoneCodes } = await import("../classes/timezone/index.js")
+
+            const result = Timezone.getTimezoneFromOffset(5)
+            expect(result).toBe(TimezoneCodes.UTC)
+        })
+
+        it("should convert multiple offsets correctly", async () => {
+            const { Timezone, TimezoneCodes } = await import("../classes/timezone/index.js")
+
+            const testCases = [
+                { offset: 0, expected: TimezoneCodes.UTC },
+                { offset: -2, expected: TimezoneCodes.BRST },
+                { offset: -3, expected: TimezoneCodes.BRT },
+                { offset: -4, expected: TimezoneCodes.EDT },
+                { offset: -5, expected: TimezoneCodes.EST },
+                { offset: -6, expected: TimezoneCodes.CST },
+                { offset: -7, expected: TimezoneCodes.MST },
+                { offset: -8, expected: TimezoneCodes.PST },
+                { offset: -9, expected: TimezoneCodes.AKST },
+                { offset: -10, expected: TimezoneCodes.HST }
+            ]
+
+            testCases.forEach(({ offset, expected }) => {
+                const result = Timezone.getTimezoneFromOffset(offset)
+                expect(result).toBe(expected)
+            })
+        })
+
+        it("should integrate with Timezone class", async () => {
+            const { Timezone } = await import("../classes/timezone/index.js")
+
+            // Simula receber um offset do cliente
+            const userOffset = -3
+            const timezoneCode = Timezone.getTimezoneFromOffset(userOffset)
+
+            // Cria uma instância de Timezone com o código obtido
+            const timezone = new Timezone(timezoneCode)
+
+            expect(timezone.getTimezoneOffset()).toBe(-3)
+            expect(timezone.getCurrentTimezoneCode()).toBe(timezoneCode)
+        })
+
+        it("should work in real-world scenario", async () => {
+            const { Timezone } = await import("../classes/timezone/index.js")
+
+            // Cenário: Usuário envia offset do cliente
+            const clientOffset = -5
+
+            // Converte offset para timezone code
+            const timezoneCode = Timezone.getTimezoneFromOffset(clientOffset)
+
+            // Cria timezone e faz conversões
+            const timezone = new Timezone(timezoneCode)
+            const utcDate = new Date("2024-01-15T15:30:00Z")
+            const localDate = timezone.UTCToLocal(utcDate)
+
+            expect(localDate.getUTCHours()).toBe(10) // 15:30 - 5h = 10:30
+        })
+
+        it("should handle getCurrentTimezone static method", async () => {
+            const { Timezone, TimezoneCodes } = await import("../classes/timezone/index.js")
+
+            const currentTimezone = Timezone.getCurrentTimezone()
+
+            expect(currentTimezone).toBeDefined()
+            expect(typeof currentTimezone).toBe("string")
+            expect(Object.values(TimezoneCodes)).toContain(currentTimezone)
+        })
+
+        it("should be accessible from library export", async () => {
+            const { Timezone } = await import("../index.js")
+
+            expect(Timezone).toBeDefined()
+            expect(Timezone.getTimezoneFromOffset).toBeDefined()
+            expect(typeof Timezone.getTimezoneFromOffset).toBe("function")
+        })
+
+        it("should convert array of offsets in batch", async () => {
+            const { Timezone } = await import("../classes/timezone/index.js")
+
+            const offsets = [0, -3, -5, -8, -10]
+            const results = offsets.map((offset) => ({
+                offset,
+                code: Timezone.getTimezoneFromOffset(offset)
+            }))
+
+            expect(results).toHaveLength(5)
+            results.forEach((result) => {
+                expect(result.code).toBeDefined()
+                expect(typeof result.code).toBe("string")
+            })
+        })
+    })
+
     describe("Integration Tests", () => {
         it("should handle complex text processing workflow", () => {
             const text = "Olá @usuario! Segue aí nossa empresa https://circle.app #startup #tech"
@@ -742,6 +888,34 @@ describe("Circle Text Library Tests", () => {
             expect(sentiment).toBeDefined()
             expect(sentiment.intensity).toBeTypeOf("number")
             expect(sentiment.sentiment).toBeTypeOf("string")
+        })
+
+        it("should integrate timezone offset conversion with full workflow", async () => {
+            const { Timezone } = await import("../classes/timezone/index.js")
+
+            // Simula dados de um post com timezone do usuário
+            const postData = {
+                text: "Ótima experiência! @empresa está fazendo um trabalho incrível! #sucesso #motivacao https://example.com",
+                userTimezoneOffset: -3, // BRT
+                createdAt: new Date("2024-01-15T18:00:00Z")
+            }
+
+            // 1. Validar conteúdo
+            const extracted = circleText.extract.content(postData.text)
+            expect(extracted.mentions).toEqual(["@empresa"])
+            expect(extracted.hashtags).toEqual(["#sucesso", "#motivacao"])
+            expect(extracted.urls).toEqual(["https://example.com"])
+
+            // 2. Analisar sentimento
+            const sentiment = circleText.extract.sentiment(postData.text)
+            expect(sentiment.sentiment).toBe("positive")
+
+            // 3. Converter timezone
+            const timezoneCode = Timezone.getTimezoneFromOffset(postData.userTimezoneOffset)
+            const timezone = new Timezone(timezoneCode)
+            const localTime = timezone.UTCToLocal(postData.createdAt)
+
+            expect(localTime.getUTCHours()).toBe(15) // 18:00 - 3h = 15:00 BRT
         })
     })
 })

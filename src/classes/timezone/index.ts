@@ -74,8 +74,6 @@ export class Timezone {
 
     public static getCurrentTimezone(): TimezoneCodes {
         const offset = new Date().getTimezoneOffset()
-        // Converte o offset do JavaScript (em minutos, positivo para oeste)
-        // para nosso formato (em horas, negativo para oeste)
         const ourOffset = -offset / 60
 
         if (ourOffset === 0) return TimezoneCodes.UTC

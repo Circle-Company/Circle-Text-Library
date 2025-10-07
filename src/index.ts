@@ -18,7 +18,7 @@ import { RichText } from "./classes/rich.text/index.js"
 import { Validator } from "./classes/validator/index.js"
 
 // Classe principal
-export class CircleTextLibrary {
+export class TextLibrary {
     public validate: CircleTextValidation
     public extract: CircleTextExtract
     public transform: CircleTextTransform
@@ -69,3 +69,9 @@ export class CircleTextLibrary {
         }
     }
 }
+
+// Exportar classes e tipos para uso direto
+export { Timezone, TimezoneCodes } from "./classes/timezone/index.js"
+export { RichText } from "./classes/rich.text/index.js"
+export { Conversor } from "./classes/conversor/index.js"
+export type { EntityMapping, RichTextEntity, RichTextUIFormat } from "./classes/rich.text/index.js"
