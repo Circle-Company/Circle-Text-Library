@@ -9,6 +9,58 @@ describe("Timezone", () => {
         testDate = new Date("2024-01-15T15:30:00Z")
     })
 
+    describe("Conversão de Offset para Timezone", () => {
+        it("deve converter offset 0 para UTC", () => {
+            const result = Timezone.getTimezoneFromOffset(0)
+            expect(result).toBe(TimezoneCodes.UTC)
+        })
+
+        it("deve converter offset -3 para BRT", () => {
+            const result = Timezone.getTimezoneFromOffset(-3)
+            expect(result).toBe(TimezoneCodes.BRT)
+        })
+
+        it("deve converter offset -5 para EST", () => {
+            const result = Timezone.getTimezoneFromOffset(-5)
+            expect(result).toBe(TimezoneCodes.EST)
+        })
+
+        it("deve converter offset -8 para PST", () => {
+            const result = Timezone.getTimezoneFromOffset(-8)
+            expect(result).toBe(TimezoneCodes.PST)
+        })
+
+        it("deve retornar UTC para offset desconhecido", () => {
+            const result = Timezone.getTimezoneFromOffset(-15)
+            expect(result).toBe(TimezoneCodes.UTC)
+        })
+
+        it("deve retornar UTC para offset positivo desconhecido", () => {
+            const result = Timezone.getTimezoneFromOffset(5)
+            expect(result).toBe(TimezoneCodes.UTC)
+        })
+
+        it("deve converter todos os offsets válidos corretamente", () => {
+            const expectedMappings = [
+                { offset: 0, expected: TimezoneCodes.UTC },
+                { offset: -3, expected: TimezoneCodes.BRT },
+                { offset: -2, expected: TimezoneCodes.BRST },
+                { offset: -5, expected: TimezoneCodes.EST },
+                { offset: -4, expected: TimezoneCodes.EDT },
+                { offset: -6, expected: TimezoneCodes.CST },
+                { offset: -7, expected: TimezoneCodes.MST },
+                { offset: -8, expected: TimezoneCodes.PST },
+                { offset: -9, expected: TimezoneCodes.AKST },
+                { offset: -10, expected: TimezoneCodes.HST }
+            ]
+
+            expectedMappings.forEach(({ offset, expected }) => {
+                const result = Timezone.getTimezoneFromOffset(offset)
+                expect(result).toBe(expected)
+            })
+        })
+    })
+
     describe("Inicialização e Configuração", () => {
         it("deve inicializar com todos os códigos de timezone válidos", () => {
             const allCodes = Object.values(TimezoneCodes)
