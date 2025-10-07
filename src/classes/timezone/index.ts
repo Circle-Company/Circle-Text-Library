@@ -96,4 +96,30 @@ export class Timezone {
         // Se não encontrar correspondência exata, retorna UTC
         return TimezoneCodes.UTC
     }
+
+    /**
+     * Converte um número (offset em horas) para o código do timezone correspondente
+     * @param offset - Offset em horas (ex: 0 para UTC, -3 para BRT, -5 para EST)
+     * @returns TimezoneCodes - Código do timezone correspondente
+     *
+     * Exemplo:
+     * Timezone.getTimezoneFromOffset(0)   // TimezoneCodes.UTC
+     * Timezone.getTimezoneFromOffset(-3)  // TimezoneCodes.BRT
+     * Timezone.getTimezoneFromOffset(-5)  // TimezoneCodes.EST
+     */
+    public static getTimezoneFromOffset(offset: number): TimezoneCodes {
+        if (offset === 0) return TimezoneCodes.UTC
+        if (offset === -3) return TimezoneCodes.BRT
+        if (offset === -2) return TimezoneCodes.BRST
+        if (offset === -5) return TimezoneCodes.EST
+        if (offset === -4) return TimezoneCodes.EDT
+        if (offset === -6) return TimezoneCodes.CST
+        if (offset === -7) return TimezoneCodes.MST
+        if (offset === -8) return TimezoneCodes.PST
+        if (offset === -9) return TimezoneCodes.AKST
+        if (offset === -10) return TimezoneCodes.HST
+
+        // Se não encontrar correspondência exata, retorna UTC
+        return TimezoneCodes.UTC
+    }
 }
