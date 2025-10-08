@@ -72,7 +72,7 @@ export class Timezone {
         return this.code
     }
 
-    public static getCurrentTimezone(): TimezoneCodes {
+    public getCurrentTimezone(): TimezoneCodes {
         const offset = new Date().getTimezoneOffset()
         const ourOffset = -offset / 60
 
@@ -105,7 +105,7 @@ export class Timezone {
      * Timezone.getTimezoneFromOffset(-3)  // TimezoneCodes.BRT
      * Timezone.getTimezoneFromOffset(-5)  // TimezoneCodes.EST
      */
-    public static getTimezoneFromOffset(offset: number): TimezoneCodes {
+    public getTimezoneFromOffset(offset: number): TimezoneCodes {
         if (offset === 0) return TimezoneCodes.UTC
         if (offset === -3) return TimezoneCodes.BRT
         if (offset === -2) return TimezoneCodes.BRST
