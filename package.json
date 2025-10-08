@@ -9,14 +9,17 @@
     "exports": {
         ".": {
             "import": "./dist/src/index.js",
+            "require": "./dist/src/index.js",
             "types": "./dist/src/index.d.ts"
         },
         "./timezone": {
             "import": "./dist/src/classes/timezone/index.js",
+            "require": "./dist/src/classes/timezone/index.js",
             "types": "./dist/src/classes/timezone/index.d.ts"
         },
         "./sentiment": {
             "import": "./dist/src/classes/sentimentExtractor/index.js",
+            "require": "./dist/src/classes/sentimentExtractor/index.js",
             "types": "./dist/src/classes/sentimentExtractor/index.d.ts"
         }
     },
