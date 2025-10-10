@@ -1,4 +1,4 @@
-import { Timezone, TimezoneCodes } from "../index"
+import { Timezone, TimezoneCode } from "../index"
 import { beforeEach, describe, expect, it } from "vitest"
 
 describe("Timezone", () => {
@@ -11,51 +11,58 @@ describe("Timezone", () => {
 
     describe("Conversão de Offset para Timezone", () => {
         it("deve converter offset 0 para UTC", () => {
-            const result = Timezone.getTimezoneFromOffset(0)
-            expect(result).toBe(TimezoneCodes.UTC)
+            const timezone = new Timezone()
+            const result = timezone.getCodeFromOffset(0)
+            expect(result).toBe(TimezoneCode.UTC)
         })
 
         it("deve converter offset -3 para BRT", () => {
-            const result = Timezone.getTimezoneFromOffset(-3)
-            expect(result).toBe(TimezoneCodes.BRT)
+            const timezone = new Timezone()
+            const result = timezone.getCodeFromOffset(-3)
+            expect(result).toBe(TimezoneCode.BRT)
         })
 
         it("deve converter offset -5 para EST", () => {
-            const result = Timezone.getTimezoneFromOffset(-5)
-            expect(result).toBe(TimezoneCodes.EST)
+            const timezone = new Timezone()
+            const result = timezone.getCodeFromOffset(-5)
+            expect(result).toBe(TimezoneCode.EST)
         })
 
         it("deve converter offset -8 para PST", () => {
-            const result = Timezone.getTimezoneFromOffset(-8)
-            expect(result).toBe(TimezoneCodes.PST)
+            const timezone = new Timezone()
+            const result = timezone.getCodeFromOffset(-8)
+            expect(result).toBe(TimezoneCode.PST)
         })
 
         it("deve retornar UTC para offset desconhecido", () => {
-            const result = Timezone.getTimezoneFromOffset(-15)
-            expect(result).toBe(TimezoneCodes.UTC)
+            const timezone = new Timezone()
+            const result = timezone.getCodeFromOffset(-15)
+            expect(result).toBe(TimezoneCode.UTC)
         })
 
         it("deve retornar UTC para offset positivo desconhecido", () => {
-            const result = Timezone.getTimezoneFromOffset(5)
-            expect(result).toBe(TimezoneCodes.UTC)
+            const timezone = new Timezone()
+            const result = timezone.getCodeFromOffset(5)
+            expect(result).toBe(TimezoneCode.UTC)
         })
 
         it("deve converter todos os offsets válidos corretamente", () => {
+            const timezone = new Timezone()
             const expectedMappings = [
-                { offset: 0, expected: TimezoneCodes.UTC },
-                { offset: -3, expected: TimezoneCodes.BRT },
-                { offset: -2, expected: TimezoneCodes.BRST },
-                { offset: -5, expected: TimezoneCodes.EST },
-                { offset: -4, expected: TimezoneCodes.EDT },
-                { offset: -6, expected: TimezoneCodes.CST },
-                { offset: -7, expected: TimezoneCodes.MST },
-                { offset: -8, expected: TimezoneCodes.PST },
-                { offset: -9, expected: TimezoneCodes.AKST },
-                { offset: -10, expected: TimezoneCodes.HST }
+                { offset: 0, expected: TimezoneCode.UTC },
+                { offset: -3, expected: TimezoneCode.BRT },
+                { offset: -2, expected: TimezoneCode.BRST },
+                { offset: -5, expected: TimezoneCode.EST },
+                { offset: -4, expected: TimezoneCode.EDT },
+                { offset: -6, expected: TimezoneCode.CST },
+                { offset: -7, expected: TimezoneCode.MST },
+                { offset: -8, expected: TimezoneCode.PST },
+                { offset: -9, expected: TimezoneCode.AKST },
+                { offset: -10, expected: TimezoneCode.HST }
             ]
 
             expectedMappings.forEach(({ offset, expected }) => {
-                const result = Timezone.getTimezoneFromOffset(offset)
+                const result = timezone.getCodeFromOffset(offset)
                 expect(result).toBe(expected)
             })
         })
@@ -63,58 +70,58 @@ describe("Timezone", () => {
 
     describe("Inicialização e Configuração", () => {
         it("deve inicializar com todos os códigos de timezone válidos", () => {
-            const allCodes = Object.values(TimezoneCodes)
+            const allCodes = Object.values(TimezoneCode)
 
             allCodes.forEach((code) => {
                 expect(() => {
-                    new Timezone(code)
+                    const timezone = new Timezone()
+                    timezone.setLocalTimezone(code)
                 }).not.toThrow()
             })
         })
 
         it("deve retornar todos os códigos de timezone disponíveis", () => {
-            const timezone = new Timezone(TimezoneCodes.UTC)
-            const codes = timezone.getTimezoneCodes()
-
-            expect(codes).toHaveLength(14)
-            expect(codes).toContain(TimezoneCodes.UTC)
-            expect(codes).toContain(TimezoneCodes.BRT)
-            expect(codes).toContain(TimezoneCodes.BRST)
-            expect(codes).toContain(TimezoneCodes.EST)
-            expect(codes).toContain(TimezoneCodes.EDT)
-            expect(codes).toContain(TimezoneCodes.CST)
-            expect(codes).toContain(TimezoneCodes.CDT)
-            expect(codes).toContain(TimezoneCodes.MST)
-            expect(codes).toContain(TimezoneCodes.MDT)
-            expect(codes).toContain(TimezoneCodes.PST)
-            expect(codes).toContain(TimezoneCodes.PDT)
-            expect(codes).toContain(TimezoneCodes.AKST)
-            expect(codes).toContain(TimezoneCodes.AKDT)
-            expect(codes).toContain(TimezoneCodes.HST)
+            const allCodes = Object.values(TimezoneCode)
+            expect(allCodes).toHaveLength(14)
+            expect(allCodes).toContain(TimezoneCode.UTC)
+            expect(allCodes).toContain(TimezoneCode.BRT)
+            expect(allCodes).toContain(TimezoneCode.BRST)
+            expect(allCodes).toContain(TimezoneCode.EST)
+            expect(allCodes).toContain(TimezoneCode.EDT)
+            expect(allCodes).toContain(TimezoneCode.CST)
+            expect(allCodes).toContain(TimezoneCode.CDT)
+            expect(allCodes).toContain(TimezoneCode.MST)
+            expect(allCodes).toContain(TimezoneCode.MDT)
+            expect(allCodes).toContain(TimezoneCode.PST)
+            expect(allCodes).toContain(TimezoneCode.PDT)
+            expect(allCodes).toContain(TimezoneCode.AKST)
+            expect(allCodes).toContain(TimezoneCode.AKDT)
+            expect(allCodes).toContain(TimezoneCode.HST)
         })
 
         it("deve manter consistência entre offset e código", () => {
             const timezoneMappings = [
-                { code: TimezoneCodes.UTC, expectedOffset: 0 },
-                { code: TimezoneCodes.BRT, expectedOffset: -3 },
-                { code: TimezoneCodes.BRST, expectedOffset: -2 },
-                { code: TimezoneCodes.EST, expectedOffset: -5 },
-                { code: TimezoneCodes.EDT, expectedOffset: -4 },
-                { code: TimezoneCodes.CST, expectedOffset: -6 },
-                { code: TimezoneCodes.CDT, expectedOffset: -5 },
-                { code: TimezoneCodes.MST, expectedOffset: -7 },
-                { code: TimezoneCodes.MDT, expectedOffset: -6 },
-                { code: TimezoneCodes.PST, expectedOffset: -8 },
-                { code: TimezoneCodes.PDT, expectedOffset: -7 },
-                { code: TimezoneCodes.AKST, expectedOffset: -9 },
-                { code: TimezoneCodes.AKDT, expectedOffset: -8 },
-                { code: TimezoneCodes.HST, expectedOffset: -10 }
+                { code: TimezoneCode.UTC, expectedOffset: 0 },
+                { code: TimezoneCode.BRT, expectedOffset: -3 },
+                { code: TimezoneCode.BRST, expectedOffset: -2 },
+                { code: TimezoneCode.EST, expectedOffset: -5 },
+                { code: TimezoneCode.EDT, expectedOffset: -4 },
+                { code: TimezoneCode.CST, expectedOffset: -6 },
+                { code: TimezoneCode.CDT, expectedOffset: -5 },
+                { code: TimezoneCode.MST, expectedOffset: -7 },
+                { code: TimezoneCode.MDT, expectedOffset: -6 },
+                { code: TimezoneCode.PST, expectedOffset: -8 },
+                { code: TimezoneCode.PDT, expectedOffset: -7 },
+                { code: TimezoneCode.AKST, expectedOffset: -9 },
+                { code: TimezoneCode.AKDT, expectedOffset: -8 },
+                { code: TimezoneCode.HST, expectedOffset: -10 }
             ]
 
             timezoneMappings.forEach(({ code, expectedOffset }) => {
-                const timezone = new Timezone(code)
-                expect(timezone.getTimezoneOffset()).toBe(expectedOffset)
-                expect(timezone.getCurrentTimezoneCode()).toBe(code)
+                const timezone = new Timezone()
+                timezone.setLocalTimezone(code)
+                expect(timezone.getOffset()).toBe(expectedOffset)
+                expect(timezone.getCode()).toBe(code)
             })
         })
     })
@@ -130,19 +137,23 @@ describe("Timezone", () => {
             testTimes.forEach(({ utc, expected }) => {
                 const utcDate = new Date(utc)
 
-                const brtTimezone = new Timezone(TimezoneCodes.BRT)
+                const brtTimezone = new Timezone()
+                brtTimezone.setLocalTimezone(TimezoneCode.BRT)
                 const brtLocal = brtTimezone.UTCToLocal(utcDate)
                 expect(brtLocal.getUTCHours()).toBe(expected.BRT)
 
-                const estTimezone = new Timezone(TimezoneCodes.EST)
+                const estTimezone = new Timezone()
+                estTimezone.setLocalTimezone(TimezoneCode.EST)
                 const estLocal = estTimezone.UTCToLocal(utcDate)
                 expect(estLocal.getUTCHours()).toBe(expected.EST)
 
-                const pstTimezone = new Timezone(TimezoneCodes.PST)
+                const pstTimezone = new Timezone()
+                pstTimezone.setLocalTimezone(TimezoneCode.PST)
                 const pstLocal = pstTimezone.UTCToLocal(utcDate)
                 expect(pstLocal.getUTCHours()).toBe(expected.PST)
 
-                const hstTimezone = new Timezone(TimezoneCodes.HST)
+                const hstTimezone = new Timezone()
+                hstTimezone.setLocalTimezone(TimezoneCode.HST)
                 const hstLocal = hstTimezone.UTCToLocal(utcDate)
                 expect(hstLocal.getUTCHours()).toBe(expected.HST)
             })
@@ -151,14 +162,15 @@ describe("Timezone", () => {
         it("deve manter precisão de segundos e milissegundos", () => {
             const preciseDate = new Date("2024-01-15T15:30:45.789Z")
             const timezones = [
-                TimezoneCodes.BRT,
-                TimezoneCodes.EST,
-                TimezoneCodes.PST,
-                TimezoneCodes.HST
+                TimezoneCode.BRT,
+                TimezoneCode.EST,
+                TimezoneCode.PST,
+                TimezoneCode.HST
             ]
 
             timezones.forEach((code) => {
-                const timezone = new Timezone(code)
+                const timezone = new Timezone()
+                timezone.setLocalTimezone(code)
                 const localDate = timezone.UTCToLocal(preciseDate)
                 const backToUTC = timezone.localToUTC(localDate)
 
@@ -173,8 +185,10 @@ describe("Timezone", () => {
             const winterDate = new Date("2024-01-15T15:30:00Z") // Inverno
             const summerDate = new Date("2024-07-15T15:30:00Z") // Verão
 
-            const estTimezone = new Timezone(TimezoneCodes.EST)
-            const edtTimezone = new Timezone(TimezoneCodes.EDT)
+            const estTimezone = new Timezone()
+            estTimezone.setLocalTimezone(TimezoneCode.EST)
+            const edtTimezone = new Timezone()
+            edtTimezone.setLocalTimezone(TimezoneCode.EDT)
 
             // No inverno, EST e EDT devem ter comportamento diferente
             const winterEST = estTimezone.UTCToLocal(winterDate)
@@ -194,7 +208,8 @@ describe("Timezone", () => {
 
     describe("Conversão UTC para Local", () => {
         it("deve converter UTC para BRT corretamente (UTC-3)", () => {
-            const brtTimezone = new Timezone(TimezoneCodes.BRT)
+            const brtTimezone = new Timezone()
+            brtTimezone.setLocalTimezone(TimezoneCode.BRT)
             const localDate = brtTimezone.UTCToLocal(testDate)
 
             // 15:30 UTC - 3h = 12:30 local
@@ -203,7 +218,8 @@ describe("Timezone", () => {
         })
 
         it("deve converter UTC para EST corretamente (UTC-5)", () => {
-            const estTimezone = new Timezone(TimezoneCodes.EST)
+            const estTimezone = new Timezone()
+            estTimezone.setLocalTimezone(TimezoneCode.EST)
             const localDate = estTimezone.UTCToLocal(testDate)
 
             // 15:30 UTC - 5h = 10:30 local
@@ -212,7 +228,8 @@ describe("Timezone", () => {
         })
 
         it("deve converter UTC para PST corretamente (UTC-8)", () => {
-            const pstTimezone = new Timezone(TimezoneCodes.PST)
+            const pstTimezone = new Timezone()
+            pstTimezone.setLocalTimezone(TimezoneCode.PST)
             const localDate = pstTimezone.UTCToLocal(testDate)
 
             // 15:30 UTC - 8h = 07:30 local
@@ -221,14 +238,16 @@ describe("Timezone", () => {
         })
 
         it("deve manter UTC inalterado", () => {
-            const utcTimezone = new Timezone(TimezoneCodes.UTC)
+            const utcTimezone = new Timezone()
+            utcTimezone.setLocalTimezone(TimezoneCode.UTC)
             const localDate = utcTimezone.UTCToLocal(testDate)
 
             expect(localDate.getTime()).toBe(testDate.getTime())
         })
 
         it("deve converter UTC para HST corretamente (UTC-10)", () => {
-            const hstTimezone = new Timezone(TimezoneCodes.HST)
+            const hstTimezone = new Timezone()
+            hstTimezone.setLocalTimezone(TimezoneCode.HST)
             const localDate = hstTimezone.UTCToLocal(testDate)
 
             // 15:30 UTC - 10h = 05:30 local
@@ -239,7 +258,8 @@ describe("Timezone", () => {
 
     describe("Conversão Local para UTC", () => {
         it("deve converter BRT para UTC corretamente", () => {
-            const brtTimezone = new Timezone(TimezoneCodes.BRT)
+            const brtTimezone = new Timezone()
+            brtTimezone.setLocalTimezone(TimezoneCode.BRT)
             const localDate = new Date("2024-01-15T12:30:00Z") // Simula hora local BRT
 
             const utcDate = brtTimezone.localToUTC(localDate)
@@ -250,7 +270,8 @@ describe("Timezone", () => {
         })
 
         it("deve converter EST para UTC corretamente", () => {
-            const estTimezone = new Timezone(TimezoneCodes.EST)
+            const estTimezone = new Timezone()
+            estTimezone.setLocalTimezone(TimezoneCode.EST)
             const localDate = new Date("2024-01-15T10:30:00Z") // Simula hora local EST
 
             const utcDate = estTimezone.localToUTC(localDate)
@@ -261,7 +282,8 @@ describe("Timezone", () => {
         })
 
         it("deve manter UTC inalterado na conversão local para UTC", () => {
-            const utcTimezone = new Timezone(TimezoneCodes.UTC)
+            const utcTimezone = new Timezone()
+            utcTimezone.setLocalTimezone(TimezoneCode.UTC)
             const utcDate = utcTimezone.localToUTC(testDate)
 
             expect(utcDate.getTime()).toBe(testDate.getTime())
@@ -270,7 +292,8 @@ describe("Timezone", () => {
 
     describe("Conversões bidirecionais", () => {
         it("deve converter UTC para BRT e voltar para UTC corretamente", () => {
-            const brtTimezone = new Timezone(TimezoneCodes.BRT)
+            const brtTimezone = new Timezone()
+            brtTimezone.setLocalTimezone(TimezoneCode.BRT)
 
             const localDate = brtTimezone.UTCToLocal(testDate)
             const backToUTC = brtTimezone.localToUTC(localDate)
@@ -279,7 +302,8 @@ describe("Timezone", () => {
         })
 
         it("deve converter UTC para EST e voltar para UTC corretamente", () => {
-            const estTimezone = new Timezone(TimezoneCodes.EST)
+            const estTimezone = new Timezone()
+            estTimezone.setLocalTimezone(TimezoneCode.EST)
 
             const localDate = estTimezone.UTCToLocal(testDate)
             const backToUTC = estTimezone.localToUTC(localDate)
@@ -289,24 +313,25 @@ describe("Timezone", () => {
 
         it("deve converter entre diferentes timezones corretamente", () => {
             const timezones = [
-                TimezoneCodes.UTC,
-                TimezoneCodes.BRT,
-                TimezoneCodes.BRST,
-                TimezoneCodes.EST,
-                TimezoneCodes.EDT,
-                TimezoneCodes.CST,
-                TimezoneCodes.CDT,
-                TimezoneCodes.MST,
-                TimezoneCodes.MDT,
-                TimezoneCodes.PST,
-                TimezoneCodes.PDT,
-                TimezoneCodes.AKST,
-                TimezoneCodes.AKDT,
-                TimezoneCodes.HST
+                TimezoneCode.UTC,
+                TimezoneCode.BRT,
+                TimezoneCode.BRST,
+                TimezoneCode.EST,
+                TimezoneCode.EDT,
+                TimezoneCode.CST,
+                TimezoneCode.CDT,
+                TimezoneCode.MST,
+                TimezoneCode.MDT,
+                TimezoneCode.PST,
+                TimezoneCode.PDT,
+                TimezoneCode.AKST,
+                TimezoneCode.AKDT,
+                TimezoneCode.HST
             ]
 
             timezones.forEach((tz) => {
-                const timezone = new Timezone(tz)
+                const timezone = new Timezone()
+                timezone.setLocalTimezone(tz)
                 const localTime = timezone.UTCToLocal(testDate)
                 const backToUTC = timezone.localToUTC(localTime)
 
@@ -317,62 +342,89 @@ describe("Timezone", () => {
 
     describe("Métodos auxiliares", () => {
         it("deve retornar offset correto para BRT", () => {
-            const brtTimezone = new Timezone(TimezoneCodes.BRT)
-            expect(brtTimezone.getTimezoneOffset()).toBe(-3) // -3 horas
+            const brtTimezone = new Timezone()
+            brtTimezone.setLocalTimezone(TimezoneCode.BRT)
+            expect(brtTimezone.getOffset()).toBe(-3) // -3 horas
         })
 
         it("deve retornar offset correto para EST", () => {
-            const estTimezone = new Timezone(TimezoneCodes.EST)
-            expect(estTimezone.getTimezoneOffset()).toBe(-5) // -5 horas
+            const estTimezone = new Timezone()
+            estTimezone.setLocalTimezone(TimezoneCode.EST)
+            expect(estTimezone.getOffset()).toBe(-5) // -5 horas
         })
 
         it("deve retornar offset correto para PST", () => {
-            const pstTimezone = new Timezone(TimezoneCodes.PST)
-            expect(pstTimezone.getTimezoneOffset()).toBe(-8) // -8 horas
+            const pstTimezone = new Timezone()
+            pstTimezone.setLocalTimezone(TimezoneCode.PST)
+            expect(pstTimezone.getOffset()).toBe(-8) // -8 horas
         })
 
         it("deve retornar offset zero para UTC", () => {
-            const utcTimezone = new Timezone(TimezoneCodes.UTC)
-            expect(utcTimezone.getTimezoneOffset()).toBe(0)
+            const utcTimezone = new Timezone()
+            utcTimezone.setLocalTimezone(TimezoneCode.UTC)
+            expect(utcTimezone.getOffset()).toBe(0)
         })
 
         it("deve retornar código de timezone correto", () => {
-            const brtTimezone = new Timezone(TimezoneCodes.BRT)
-            expect(brtTimezone.getCurrentTimezoneCode()).toBe(TimezoneCodes.BRT)
+            const brtTimezone = new Timezone()
+            brtTimezone.setLocalTimezone(TimezoneCode.BRT)
+            expect(brtTimezone.getCode()).toBe(TimezoneCode.BRT)
 
-            const estTimezone = new Timezone(TimezoneCodes.EST)
-            expect(estTimezone.getCurrentTimezoneCode()).toBe(TimezoneCodes.EST)
+            const estTimezone = new Timezone()
+            estTimezone.setLocalTimezone(TimezoneCode.EST)
+            expect(estTimezone.getCode()).toBe(TimezoneCode.EST)
 
-            const utcTimezone = new Timezone(TimezoneCodes.UTC)
-            expect(utcTimezone.getCurrentTimezoneCode()).toBe(TimezoneCodes.UTC)
+            const utcTimezone = new Timezone()
+            utcTimezone.setLocalTimezone(TimezoneCode.UTC)
+            expect(utcTimezone.getCode()).toBe(TimezoneCode.UTC)
         })
     })
 
-    describe("Detecção de Timezone Atual", () => {
-        it("deve detectar timezone atual do sistema", () => {
-            const currentTimezone = Timezone.getCurrentTimezone()
-            expect(Object.values(TimezoneCodes)).toContain(currentTimezone)
+    describe("Conversão de Código para Offset", () => {
+        it("deve retornar offset correto para cada código de timezone", () => {
+            const timezone = new Timezone()
+
+            expect(timezone.getOffsetFromCode(TimezoneCode.UTC)).toBe(0)
+            expect(timezone.getOffsetFromCode(TimezoneCode.BRT)).toBe(-3)
+            expect(timezone.getOffsetFromCode(TimezoneCode.BRST)).toBe(-2)
+            expect(timezone.getOffsetFromCode(TimezoneCode.EST)).toBe(-5)
+            expect(timezone.getOffsetFromCode(TimezoneCode.EDT)).toBe(-4)
+            expect(timezone.getOffsetFromCode(TimezoneCode.CST)).toBe(-6)
+            expect(timezone.getOffsetFromCode(TimezoneCode.MST)).toBe(-7)
+            expect(timezone.getOffsetFromCode(TimezoneCode.PST)).toBe(-8)
+            expect(timezone.getOffsetFromCode(TimezoneCode.AKST)).toBe(-9)
+            expect(timezone.getOffsetFromCode(TimezoneCode.HST)).toBe(-10)
         })
 
-        it("deve retornar um código de timezone válido", () => {
-            const currentTimezone = Timezone.getCurrentTimezone()
-            expect(typeof currentTimezone).toBe("string")
-            expect(currentTimezone.length).toBeGreaterThan(0)
+        it("deve ser consistente entre getCodeFromOffset e getOffsetFromCode", () => {
+            const timezone = new Timezone()
+            const offsets = [0, -2, -3, -4, -5, -6, -7, -8, -9, -10]
+
+            offsets.forEach((offset) => {
+                const code = timezone.getCodeFromOffset(offset)
+                const retrievedOffset = timezone.getOffsetFromCode(code)
+                expect(retrievedOffset).toBe(offset)
+            })
         })
 
-        it("deve ser consistente em múltiplas chamadas", () => {
-            const timezone1 = Timezone.getCurrentTimezone()
-            const timezone2 = Timezone.getCurrentTimezone()
-            const timezone3 = Timezone.getCurrentTimezone()
+        it("deve funcionar bidirecionalmente para todos os timezones", () => {
+            const timezone = new Timezone()
+            const allCodes = Object.values(TimezoneCode)
 
-            expect(timezone1).toBe(timezone2)
-            expect(timezone2).toBe(timezone3)
+            allCodes.forEach((code) => {
+                const offset = timezone.getOffsetFromCode(code)
+                const retrievedCode = timezone.getCodeFromOffset(offset)
+
+                // Deve retornar um código válido (pode não ser exatamente o mesmo devido a múltiplos codes com mesmo offset)
+                expect(Object.values(TimezoneCode)).toContain(retrievedCode)
+            })
         })
     })
 
     describe("Validação de entrada", () => {
         it("deve lançar erro para data inválida na conversão UTC para local", () => {
-            const brtTimezone = new Timezone(TimezoneCodes.BRT)
+            const brtTimezone = new Timezone()
+            brtTimezone.setLocalTimezone(TimezoneCode.BRT)
 
             expect(() => {
                 brtTimezone.UTCToLocal(new Date("invalid"))
@@ -384,7 +436,8 @@ describe("Timezone", () => {
         })
 
         it("deve lançar erro para data inválida na conversão local para UTC", () => {
-            const brtTimezone = new Timezone(TimezoneCodes.BRT)
+            const brtTimezone = new Timezone()
+            brtTimezone.setLocalTimezone(TimezoneCode.BRT)
 
             expect(() => {
                 brtTimezone.localToUTC(new Date("invalid"))
@@ -396,7 +449,8 @@ describe("Timezone", () => {
         })
 
         it("deve aceitar datas válidas", () => {
-            const brtTimezone = new Timezone(TimezoneCodes.BRT)
+            const brtTimezone = new Timezone()
+            brtTimezone.setLocalTimezone(TimezoneCode.BRT)
             const validDate = new Date("2024-01-15T15:30:00Z")
 
             expect(() => {
@@ -409,10 +463,11 @@ describe("Timezone", () => {
     describe("Casos Extremos e Edge Cases", () => {
         it("deve lidar com mudanças de ano", () => {
             const newYearUTC = new Date("2024-01-01T00:00:00Z")
-            const timezones = [TimezoneCodes.BRT, TimezoneCodes.PST, TimezoneCodes.HST]
+            const timezones = [TimezoneCode.BRT, TimezoneCode.PST, TimezoneCode.HST]
 
             timezones.forEach((code) => {
-                const timezone = new Timezone(code)
+                const timezone = new Timezone()
+                timezone.setLocalTimezone(code)
                 const localDate = timezone.UTCToLocal(newYearUTC)
                 const backToUTC = timezone.localToUTC(localDate)
 
@@ -423,7 +478,8 @@ describe("Timezone", () => {
 
         it("deve lidar com anos bissextos", () => {
             const leapYearDate = new Date("2024-02-29T12:00:00Z") // 29 de fevereiro em ano bissexto
-            const timezone = new Timezone(TimezoneCodes.BRT)
+            const timezone = new Timezone()
+            timezone.setLocalTimezone(TimezoneCode.BRT)
 
             const localDate = timezone.UTCToLocal(leapYearDate)
             const backToUTC = timezone.localToUTC(localDate)
@@ -435,7 +491,8 @@ describe("Timezone", () => {
 
         it("deve lidar com datas muito antigas", () => {
             const oldDate = new Date("1970-01-01T00:00:00Z") // Unix epoch
-            const timezone = new Timezone(TimezoneCodes.UTC)
+            const timezone = new Timezone()
+            timezone.setLocalTimezone(TimezoneCode.UTC)
 
             const localDate = timezone.UTCToLocal(oldDate)
             const backToUTC = timezone.localToUTC(localDate)
@@ -445,7 +502,8 @@ describe("Timezone", () => {
 
         it("deve lidar com datas futuras distantes", () => {
             const futureDate = new Date("2099-12-31T23:59:59Z")
-            const timezone = new Timezone(TimezoneCodes.BRT)
+            const timezone = new Timezone()
+            timezone.setLocalTimezone(TimezoneCode.BRT)
 
             const localDate = timezone.UTCToLocal(futureDate)
             const backToUTC = timezone.localToUTC(localDate)
@@ -455,7 +513,8 @@ describe("Timezone", () => {
         })
 
         it("deve manter precisão de milissegundos", () => {
-            const brtTimezone = new Timezone(TimezoneCodes.BRT)
+            const brtTimezone = new Timezone()
+            brtTimezone.setLocalTimezone(TimezoneCode.BRT)
             const preciseDate = new Date("2024-01-15T15:30:45.123Z")
 
             const localDate = brtTimezone.UTCToLocal(preciseDate)
@@ -474,7 +533,8 @@ describe("Timezone", () => {
                     )
             )
 
-            const timezone = new Timezone(TimezoneCodes.BRT)
+            const timezone = new Timezone()
+            timezone.setLocalTimezone(TimezoneCode.BRT)
 
             dates.forEach((date) => {
                 const localDate = timezone.UTCToLocal(date)
@@ -485,7 +545,8 @@ describe("Timezone", () => {
 
         it("deve manter consistência em conversões múltiplas", () => {
             const originalDate = new Date("2024-06-15T14:30:00Z")
-            const timezone = new Timezone(TimezoneCodes.EST)
+            const timezone = new Timezone()
+            timezone.setLocalTimezone(TimezoneCode.EST)
 
             let currentDate = originalDate
             for (let i = 0; i < 10; i++) {
@@ -499,7 +560,8 @@ describe("Timezone", () => {
 
     describe("Validações e Performance", () => {
         it("deve validar entrada de datas inválidas de forma robusta", () => {
-            const timezone = new Timezone(TimezoneCodes.BRT)
+            const timezone = new Timezone()
+            timezone.setLocalTimezone(TimezoneCode.BRT)
             const invalidInputs = [
                 new Date("invalid"),
                 new Date(NaN),
@@ -524,7 +586,8 @@ describe("Timezone", () => {
         })
 
         it("deve ter performance adequada para conversões em massa", () => {
-            const timezone = new Timezone(TimezoneCodes.BRT)
+            const timezone = new Timezone()
+            timezone.setLocalTimezone(TimezoneCode.BRT)
             const startTime = performance.now()
 
             // Testa 1000 conversões
@@ -547,7 +610,8 @@ describe("Timezone", () => {
         it("deve manter imutabilidade dos objetos Date", () => {
             const originalDate = new Date("2024-01-15T15:30:00Z")
             const originalTime = originalDate.getTime()
-            const timezone = new Timezone(TimezoneCodes.BRT)
+            const timezone = new Timezone()
+            timezone.setLocalTimezone(TimezoneCode.BRT)
 
             const localDate = timezone.UTCToLocal(originalDate)
             const backToUTC = timezone.localToUTC(localDate)
@@ -558,7 +622,8 @@ describe("Timezone", () => {
         })
 
         it("deve funcionar corretamente com diferentes tipos de entrada de data", () => {
-            const timezone = new Timezone(TimezoneCodes.EST)
+            const timezone = new Timezone()
+            timezone.setLocalTimezone(TimezoneCode.EST)
             const testDates = [
                 new Date("2024-01-15T15:30:00Z"),
                 new Date(1705335000000), // Timestamp
