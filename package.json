@@ -9,15 +9,48 @@
     "exports": {
         ".": {
             "import": "./dist/src/index.js",
+            "require": "./dist/src/index.js",
             "types": "./dist/src/index.d.ts"
+        },
+        "./conversor": {
+            "import": "./dist/src/classes/conversor/index.js",
+            "require": "./dist/src/classes/conversor/index.js",
+            "types": "./dist/src/classes/conversor/index.d.ts"
+        },
+        "./date": {
+            "import": "./dist/src/classes/date/index.js",
+            "require": "./dist/src/classes/date/index.js",
+            "types": "./dist/src/classes/date/index.d.ts"
+        },
+        "./extractor": {
+            "import": "./dist/src/classes/extractor/index.js",
+            "require": "./dist/src/classes/extractor/index.js",
+            "types": "./dist/src/classes/extractor/index.d.ts"
+        },
+        "./rich-text": {
+            "import": "./dist/src/classes/rich.text/index.js",
+            "require": "./dist/src/classes/rich.text/index.js",
+            "types": "./dist/src/classes/rich.text/index.d.ts"
+        },
+        "./sentiment": {
+            "import": "./dist/src/classes/sentiment/index.js",
+            "require": "./dist/src/classes/sentiment/index.js",
+            "types": "./dist/src/classes/sentiment/index.d.ts"
         },
         "./timezone": {
             "import": "./dist/src/classes/timezone/index.js",
+            "require": "./dist/src/classes/timezone/index.js",
             "types": "./dist/src/classes/timezone/index.d.ts"
         },
-        "./sentiment": {
-            "import": "./dist/src/classes/sentimentExtractor/index.js",
-            "types": "./dist/src/classes/sentimentExtractor/index.d.ts"
+        "./validator": {
+            "import": "./dist/src/classes/validator/index.js",
+            "require": "./dist/src/classes/validator/index.js",
+            "types": "./dist/src/classes/validator/index.d.ts"
+        },
+        "./types": {
+            "import": "./dist/src/types.js",
+            "require": "./dist/src/types.js",
+            "types": "./dist/src/types.d.ts"
         }
     },
     "files": [
