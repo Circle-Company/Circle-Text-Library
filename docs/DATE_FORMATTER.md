@@ -22,7 +22,7 @@ import { TextLibrary, DateFormatterConfig } from "circle-text-library"
 
 const config: DateFormatterConfig = {
     style: "full", // Estilo de formatação
-    locale: "pt-BR", // Locale para datas completas
+    locale: "pt", // Locale para datas completas
     usePrefix: false, // Usar "há" antes do tempo
     useSuffix: true, // Usar "atrás" após o tempo
     capitalize: false, // Capitalizar primeira letra
@@ -499,6 +499,83 @@ try {
 - Sem dependências externas
 - Otimizado para uso em larga escala
 - Cache de configurações para melhor performance
+
+## Suporte a Múltiplos Idiomas
+
+### Português (pt, pt-BR)
+
+```typescript
+const formatter = new DateFormatter({ locale: "pt" })
+// ou
+const formatter = new DateFormatter({ locale: "pt-BR" })
+
+formatter.toRelativeTime(pastDate)
+// "10 minutos atrás"
+// "2 horas atrás"
+// "ontem"
+```
+
+### Inglês (en, en-US)
+
+```typescript
+const formatter = new DateFormatter({ locale: "en" })
+// ou
+const formatter = new DateFormatter({ locale: "en-US" })
+
+formatter.toRelativeTime(pastDate)
+// "10 minutes ago"
+// "2 hours ago"
+// "yesterday"
+```
+
+### Comparação de Idiomas
+
+| Português | Inglês | Short | Abbreviated |
+|-----------|--------|-------|-------------|
+| "agora" | "now" | "now" | "now" |
+| "30 segundos atrás" | "30 seconds ago" | "30s" | "30sec" |
+| "5 minutos atrás" | "5 minutes ago" | "5m" | "5min" |
+| "2 horas atrás" | "2 hours ago" | "2h" | "2h" |
+| "ontem" | "yesterday" | "1d" | "1d" |
+| "3 dias atrás" | "3 days ago" | "3d" | "3d" |
+| "2 semanas atrás" | "2 weeks ago" | "2w" | "2wk" |
+| "3 meses atrás" | "3 months ago" | "3mo" | "3mo" |
+| "2 anos atrás" | "2 years ago" | "2y" | "2y" |
+
+### Tempo Aproximado em Inglês
+
+```typescript
+const formatter = new DateFormatter({
+    locale: "en",
+    useApproximateTime: true
+})
+
+formatter.toRelativeTime(twoYearsAgo)
+// "over a year ago"
+
+formatter.toRelativeTime(twoWeeksAgo)
+// "over a week ago"
+```
+
+### Formatação de Datas Completas
+
+```typescript
+// Português
+const ptFormatter = new DateFormatter({ locale: "pt" })
+ptFormatter.toFullDate(new Date("2024-06-15"))
+// "15 de junho de 2024"
+
+ptFormatter.toFullDateTime(new Date("2024-06-15T14:30:00Z"))
+// "15 de junho de 2024 às 14:30"
+
+// Inglês
+const enFormatter = new DateFormatter({ locale: "en" })
+enFormatter.toFullDate(new Date("2024-06-15"))
+// "June 15, 2024"
+
+enFormatter.toFullDateTime(new Date("2024-06-15T14:30:00Z"))
+// "June 15, 2024 at 2:30 PM"
+```
 
 ## Próximos Passos
 

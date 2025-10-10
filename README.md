@@ -57,23 +57,34 @@ const relative = formatter.toRelativeTime(new Date(Date.now() - 300000))
 
 ## Documentação Completa
 
-### Configuração e Setup
+**[Ver Índice Completo da Documentação →](./docs/README.md)**
 
-- [Guia de Configuração](./docs/CONFIGURATION.md) - Configuração completa da biblioteca
+### Início Rápido
+
+- [Guia de Configuração](./docs/CONFIGURATION.md) - Setup completo e configuração da biblioteca
+- [Exemplos Práticos](./docs/EXAMPLES.md) - Casos de uso reais e workflows completos
 
 ### Módulos Principais
 
+**Validação e Segurança**
+
 - [Sistema de Validação](./docs/VALIDATION.md) - Validação de usernames, passwords, URLs e mais
+
+**Extração e Análise**
+
 - [Sistema de Extração](./docs/EXTRACTION.md) - Extração de entidades e keywords
-- [Análise de Sentimento](./docs/SENTIMENT.md) - Análise contextual de sentimento
+- [Análise de Sentimento](./docs/SENTIMENT.md) - Análise contextual com suporte a emojis
+
+**Formatação e Conversão**
+
 - [Formatador de Datas](./docs/DATE_FORMATTER.md) - Conversão de datas para texto humanizado
-- [Rich Text](./docs/RICH_TEXT.md) - Formatação enriquecida de texto
-- [Conversor Numérico](./docs/CONVERSOR.md) - Formatação de números e textos
+- [Conversor Numérico](./docs/CONVERSOR.md) - Formatação de números e manipulação de texto
+- [Rich Text](./docs/RICH_TEXT.md) - Formatação enriquecida com entidades
 - [Gerenciamento de Timezone](./docs/TIMEZONE.md) - Conversão entre fusos horários
 
-### Referência da API
+### Referência Técnica
 
-- [Referência Completa da API](./docs/API_REFERENCE.md) - Documentação detalhada de todas as classes e métodos
+- [Referência Completa da API](./docs/API_REFERENCE.md) - Documentação de todas as classes e métodos
 
 ## Características Principais
 
