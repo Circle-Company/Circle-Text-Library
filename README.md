@@ -1,16 +1,15 @@
 # Circle Text Library
 
-**Versão:** 1.0.53  
-**Licença:** Circle License, Version 1.0  
-**Copyright:** 2025 Circle Company, Inc.
+**Versão:** 1.1.0  
+**Autor:** Circle Company, Inc.
 
-Biblioteca JavaScript/TypeScript completa para validação, extração e processamento de texto, desenvolvida especificamente para aplicações de redes sociais e comunicação.
+Biblioteca JavaScript/TypeScript síncrona para validação, extração e processamento de texto, e análise de sentimento desenvolvida o Circle App.
 
 ## Principais Funcionalidades
 
 - **Sistema de Validação Configurável**: Validação robusta de usernames, hashtags, URLs, senhas e mais
 - **Extração de Entidades**: Extração inteligente de menções, hashtags, URLs e keywords
-- **Análise de Sentimento**: Análise contextual em português com suporte a ironia e emojis
+- **Análise de Sentimento**: Análise contextual em português com suporte a emojis
 - **Formatação de Datas**: Conversão de datas para texto humanizado com múltiplas opções
 - **Rich Text**: Formatação enriquecida com identificação automática de entidades
 - **Conversão Numérica**: Formatação de números e textos para exibição
@@ -82,7 +81,6 @@ const relative = formatter.toRelativeTime(new Date(Date.now() - 300000))
 
 - Processamento síncrono e otimizado
 - Cache inteligente para análises repetidas
-- Suporte a processamento em lote
 
 ### Segurança
 
