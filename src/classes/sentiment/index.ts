@@ -3,8 +3,6 @@ import EMOJI_SCORES from "../../data/pt-br/emojiScore.json" with { type: "json" 
 import INTENSITY_WORDS from "../../data/pt-br/intensityWords.json" with { type: "json" }
 import IRONY_INDICATORS from "../../data/pt-br/ironyIndicators.json" with { type: "json" }
 import PT_SENTIMENT_WORDS from "../../data/pt-br/sentimentWords.json" with { type: "json" }
-import STOPWORDS from "../../data/pt-br/stopwords.json" with { type: "json" }
-
 export interface SentimentExtractorConfig {
     enableCache?: boolean
     enableEmojiAnalysis?: boolean
