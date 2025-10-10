@@ -46,7 +46,7 @@ import { DateFormatter } from "circle-text-library"
 
 const formatter = new DateFormatter({
     style: "full",
-    locale: "pt-BR"
+    locale: "pt"
 })
 ```
 
@@ -506,8 +506,6 @@ try {
 
 ```typescript
 const formatter = new DateFormatter({ locale: "pt" })
-// ou
-const formatter = new DateFormatter({ locale: "pt-BR" })
 
 formatter.toRelativeTime(pastDate)
 // "10 minutos atrás"
@@ -519,8 +517,6 @@ formatter.toRelativeTime(pastDate)
 
 ```typescript
 const formatter = new DateFormatter({ locale: "en" })
-// ou
-const formatter = new DateFormatter({ locale: "en-US" })
 
 formatter.toRelativeTime(pastDate)
 // "10 minutes ago"
