@@ -216,15 +216,16 @@ export class RichText {
         let normalText = text
 
         // Converter menções de volta (com ou sem ID) usando prefixo configurável
+        // Usa função para evitar problemas com caracteres especiais como $ em prefixos
         normalText = normalText.replace(
             /\[txt:([^,]+), ent:mention(?:, id:[^\]]+)?\]/g,
-            `${this.mentionPrefix}$1`
+            (match, username) => `${this.mentionPrefix}${username}`
         )
 
         // Converter hashtags de volta (com ou sem ID) usando prefixo configurável
         normalText = normalText.replace(
             /\[txt:([^,]+), ent:hashtag(?:, id:[^\]]+)?\]/g,
-            `${this.hashtagPrefix}$1`
+            (match, hashtag) => `${this.hashtagPrefix}${hashtag}`
         )
 
         // Converter URLs de volta (com ou sem ID)
