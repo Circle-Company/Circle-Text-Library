@@ -7,6 +7,11 @@
  * - URLs (https://example.com)
  */
 
+export interface RichTextConfig {
+    mentionPrefix?: string
+    hashtagPrefix?: string
+}
+
 export interface EntityMapping {
     mentions?: Record<string, string> // { "username": "id" }
     hashtags?: Record<string, string> // { "hashtag": "id" }
@@ -29,6 +34,13 @@ export class RichText {
     private baseText: string = ""
     private enrichedText: string = ""
     private entityMapping: EntityMapping = {}
+    private readonly mentionPrefix: string
+    private readonly hashtagPrefix: string
+
+    constructor(config?: RichTextConfig) {
+        this.mentionPrefix = config?.mentionPrefix ?? "@"
+        this.hashtagPrefix = config?.hashtagPrefix ?? "#"
+    }
 
     public getEntityMapping(): EntityMapping {
         return this.entityMapping
@@ -58,8 +70,10 @@ export class RichText {
         const mapping = entityMapping || this.entityMapping
         let enrichedText = text
 
-        // Processar menções (@username)
-        enrichedText = enrichedText.replace(/@([a-zA-Z0-9._-]+)/g, (match, username) => {
+        // Processar menções com prefixo configurável
+        const escapedMentionPrefix = this.escapeRegex(this.mentionPrefix)
+        const mentionRegex = new RegExp(`${escapedMentionPrefix}([a-zA-Z0-9._-]+)`, "g")
+        enrichedText = enrichedText.replace(mentionRegex, (match, username) => {
             const id = mapping.mentions?.[username]
             if (id) {
                 return `[txt:${username}, ent:mention, id:${id}]`
@@ -67,8 +81,10 @@ export class RichText {
             return `[txt:${username}, ent:mention]`
         })
 
-        // Processar hashtags (#hashtag)
-        enrichedText = enrichedText.replace(/#([a-zA-Z0-9_]+)/g, (match, hashtag) => {
+        // Processar hashtags com prefixo configurável
+        const escapedHashtagPrefix = this.escapeRegex(this.hashtagPrefix)
+        const hashtagRegex = new RegExp(`${escapedHashtagPrefix}([a-zA-Z0-9_]+)`, "g")
+        enrichedText = enrichedText.replace(hashtagRegex, (match, hashtag) => {
             const id = mapping.hashtags?.[hashtag]
             if (id) {
                 return `[txt:${hashtag}, ent:hashtag, id:${id}]`
@@ -82,6 +98,13 @@ export class RichText {
         })
 
         return enrichedText
+    }
+
+    /**
+     * Escapa caracteres especiais de regex.
+     */
+    private escapeRegex(str: string): string {
+        return str.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")
     }
 
     /**
@@ -132,8 +155,13 @@ export class RichText {
                 })
             }
 
-            // Adicionar símbolo de prefixo dependendo do tipo
-            const prefix = entityType === "mention" ? "@" : entityType === "hashtag" ? "#" : ""
+            // Adicionar símbolo de prefixo dependendo do tipo (usando prefixos configuráveis)
+            const prefix =
+                entityType === "mention"
+                    ? this.mentionPrefix
+                    : entityType === "hashtag"
+                      ? this.hashtagPrefix
+                      : ""
             const entityFullText = prefix + entityText
             const entityStart = startInNormal
             const entityEnd = entityStart + entityFullText.length
@@ -187,11 +215,18 @@ export class RichText {
 
         let normalText = text
 
-        // Converter menções de volta (com ou sem ID)
-        normalText = normalText.replace(/\[txt:([^,]+), ent:mention(?:, id:[^\]]+)?\]/g, "@$1")
+        // Converter menções de volta (com ou sem ID) usando prefixo configurável
+        // Usa função para evitar problemas com caracteres especiais como $ em prefixos
+        normalText = normalText.replace(
+            /\[txt:([^,]+), ent:mention(?:, id:[^\]]+)?\]/g,
+            (match, username) => `${this.mentionPrefix}${username}`
+        )
 
-        // Converter hashtags de volta (com ou sem ID)
-        normalText = normalText.replace(/\[txt:([^,]+), ent:hashtag(?:, id:[^\]]+)?\]/g, "#$1")
+        // Converter hashtags de volta (com ou sem ID) usando prefixo configurável
+        normalText = normalText.replace(
+            /\[txt:([^,]+), ent:hashtag(?:, id:[^\]]+)?\]/g,
+            (match, hashtag) => `${this.hashtagPrefix}${hashtag}`
+        )
 
         // Converter URLs de volta (com ou sem ID)
         normalText = normalText.replace(/\[txt:([^,]+), ent:url(?:, id:[^\]]+)?\]/g, "$1")
