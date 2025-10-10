@@ -18,10 +18,12 @@ O módulo Rich Text fornece formatação enriquecida de texto com identificaçã
 import { TextLibrary } from "circle-text-library"
 
 const textLib = new TextLibrary({
-    validationRules: { /* ... */ },
+    validationRules: {
+        /* ... */
+    },
     richTextConfig: {
-        mentionPrefix: "@",  // Prefixo de menções
-        hashtagPrefix: "#"   // Prefixo de hashtags
+        mentionPrefix: "@", // Prefixo de menções
+        hashtagPrefix: "#" // Prefixo de hashtags
     }
 })
 ```
@@ -31,11 +33,13 @@ const textLib = new TextLibrary({
 ### Texto Normal vs Enriquecido
 
 **Texto Normal:**
+
 ```
 Olá @alice veja #tech em https://example.com
 ```
 
 **Texto Enriquecido:**
+
 ```
 Olá [txt:alice, ent:mention, id:user_123] veja [txt:tech, ent:hashtag, id:tag_456] em [txt:https://example.com, ent:url]
 ```
@@ -130,6 +134,7 @@ Usado para armazenamento no banco de dados.
 ```
 
 Estrutura:
+
 - `txt`: Texto da entidade (sem prefixo)
 - `ent`: Tipo da entidade (mention, hashtag, url)
 - `id`: ID opcional da entidade
@@ -166,15 +171,15 @@ Estrutura otimizada para renderização em componentes.
 ```typescript
 function createPost(content, mentions) {
     const richText = textLib.rich
-    
+
     // Mapear IDs dos usuários mencionados
     const mentionMapping = {}
-    mentions.forEach(mention => {
+    mentions.forEach((mention) => {
         mentionMapping[mention.username] = mention.userId
     })
-    
+
     richText.setText(content, { mentions: mentionMapping })
-    
+
     // Salvar no banco
     return {
         contentRich: richText.getEnrichedText(),
@@ -182,13 +187,10 @@ function createPost(content, mentions) {
     }
 }
 
-const post = createPost(
-    "Olá @alice e @bob, confiram isso!",
-    [
-        { username: "alice", userId: "user_123" },
-        { username: "bob", userId: "user_456" }
-    ]
-)
+const post = createPost("Olá @alice e @bob, confiram isso!", [
+    { username: "alice", userId: "user_123" },
+    { username: "bob", userId: "user_456" }
+])
 ```
 
 ### 2. Renderização de Posts
@@ -197,9 +199,9 @@ const post = createPost(
 function renderPost(enrichedContent) {
     const richText = textLib.rich
     richText.setText(enrichedContent)
-    
+
     const uiFormat = richText.formatToUI()
-    
+
     return uiFormat.entities.map((entity, index) => {
         if (entity.type === "mention") {
             return {
@@ -209,7 +211,7 @@ function renderPost(enrichedContent) {
                 key: index
             }
         }
-        
+
         if (entity.type === "hashtag") {
             return {
                 type: "link",
@@ -218,7 +220,7 @@ function renderPost(enrichedContent) {
                 key: index
             }
         }
-        
+
         if (entity.type === "url") {
             return {
                 type: "link",
@@ -227,7 +229,7 @@ function renderPost(enrichedContent) {
                 key: index
             }
         }
-        
+
         return {
             type: "text",
             text: entity.text,
@@ -243,10 +245,10 @@ function renderPost(enrichedContent) {
 function createMentionNotifications(postContent, authorId) {
     const richText = textLib.rich
     richText.setText(postContent)
-    
+
     const entities = richText.extractEntities()
-    
-    return entities.mentions?.map(mention => ({
+
+    return entities.mentions?.map((mention) => ({
         userId: mention.id,
         type: "mention",
         message: `${authorId} mentioned you in a post`,
@@ -264,13 +266,13 @@ function createMentionNotifications(postContent, authorId) {
 function indexPost(post) {
     const richText = textLib.rich
     richText.setText(post.content)
-    
+
     const entities = richText.extractEntities()
-    
+
     // Extrair IDs para indexação
-    const mentionIds = entities.mentions?.map(m => m.id).filter(Boolean) || []
-    const hashtagIds = entities.hashtags?.map(h => h.id).filter(Boolean) || []
-    
+    const mentionIds = entities.mentions?.map((m) => m.id).filter(Boolean) || []
+    const hashtagIds = entities.hashtags?.map((h) => h.id).filter(Boolean) || []
+
     return {
         postId: post.id,
         content: richText.formatToNormal(),
@@ -287,13 +289,13 @@ function indexPost(post) {
 ```typescript
 function editPost(originalRichText, newContent, entityMappings) {
     const richText = textLib.rich
-    
+
     // Aplicar novo conteúdo com mapeamentos
     richText.setText(newContent, entityMappings)
-    
+
     // Obter versão enriquecida atualizada
     const updatedRich = richText.getEnrichedText()
-    
+
     return {
         contentRich: updatedRich,
         contentNormal: richText.formatToNormal(),
@@ -309,30 +311,30 @@ function convertLegacyFormat(oldFormat) {
     // Texto normal sem IDs
     const richText = textLib.rich
     richText.setText(oldFormat)
-    
+
     // Extrair entidades
     const entities = richText.extractEntities()
-    
+
     // Buscar IDs no banco de dados
-    const mentions = await fetchUserIds(entities.mentions?.map(m => m.text))
-    const hashtags = await fetchHashtagIds(entities.hashtags?.map(h => h.text))
-    
+    const mentions = await fetchUserIds(entities.mentions?.map((m) => m.text))
+    const hashtags = await fetchHashtagIds(entities.hashtags?.map((h) => h.text))
+
     // Reconstruir com IDs
     const mappings = {
         mentions: {},
         hashtags: {}
     }
-    
-    mentions.forEach(m => {
+
+    mentions.forEach((m) => {
         mappings.mentions[m.username] = m.id
     })
-    
-    hashtags.forEach(h => {
+
+    hashtags.forEach((h) => {
         mappings.hashtags[h.name] = h.id
     })
-    
+
     richText.setText(oldFormat, mappings)
-    
+
     return richText.getEnrichedText()
 }
 ```
@@ -371,7 +373,7 @@ O formato UI fornece posições exatas para renderização:
 ```typescript
 const ui = richText.formatToUI()
 
-ui.entities.forEach(entity => {
+ui.entities.forEach((entity) => {
     console.log(`${entity.type}: "${entity.text}" at ${entity.start}-${entity.end}`)
 })
 ```
@@ -388,4 +390,3 @@ ui.entities.forEach(entity => {
 - [Guia de Configuração](./CONFIGURATION.md)
 - [Sistema de Extração](./EXTRACTION.md)
 - [Referência Completa da API](./API_REFERENCE.md)
-

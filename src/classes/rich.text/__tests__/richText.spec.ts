@@ -623,4 +623,191 @@ describe("RichText", () => {
             expect(entities.mentions[1]?.id).toBe("u1")
         })
     })
+
+    // ========================================================================
+    // TESTES DE CONFIGURAÇÃO DE PREFIXOS CUSTOMIZADOS
+    // ========================================================================
+    describe("Configuração de Prefixos Customizados", () => {
+        it("deve usar prefixo customizado para menções", () => {
+            const richText = new RichText({ mentionPrefix: "~" })
+            richText.setText("Olá ~alice e ~bob")
+
+            const enriched = richText.getEnrichedText()
+            expect(enriched).toContain("[txt:alice, ent:mention]")
+            expect(enriched).toContain("[txt:bob, ent:mention]")
+
+            const normal = richText.formatToNormal()
+            expect(normal).toBe("Olá ~alice e ~bob")
+        })
+
+        it("deve usar prefixo customizado para hashtags", () => {
+            const richText = new RichText({ hashtagPrefix: "+" })
+            richText.setText("Confira +technology e +coding")
+
+            const enriched = richText.getEnrichedText()
+            expect(enriched).toContain("[txt:technology, ent:hashtag]")
+            expect(enriched).toContain("[txt:coding, ent:hashtag]")
+
+            const normal = richText.formatToNormal()
+            expect(normal).toBe("Confira +technology e +coding")
+        })
+
+        it("deve usar ambos os prefixos customizados simultaneamente", () => {
+            const richText = new RichText({
+                mentionPrefix: "~",
+                hashtagPrefix: "+"
+            })
+            richText.setText("Olá ~alice veja +tech")
+
+            const enriched = richText.getEnrichedText()
+            expect(enriched).toContain("[txt:alice, ent:mention]")
+            expect(enriched).toContain("[txt:tech, ent:hashtag]")
+
+            const normal = richText.formatToNormal()
+            expect(normal).toBe("Olá ~alice veja +tech")
+        })
+
+        it("deve funcionar com prefixos especiais que precisam de escape", () => {
+            const richText = new RichText({ mentionPrefix: "$" })
+            richText.setText("Pagamento $user1 e $user2")
+
+            const enriched = richText.getEnrichedText()
+            expect(enriched).toContain("[txt:user1, ent:mention]")
+            expect(enriched).toContain("[txt:user2, ent:mention]")
+        })
+
+        it("deve processar IDs com prefixos customizados", () => {
+            const richText = new RichText({
+                mentionPrefix: "~",
+                hashtagPrefix: "+"
+            })
+            richText.setText("~alice +tech", {
+                mentions: { alice: "u123" },
+                hashtags: { tech: "t456" }
+            })
+
+            const entities = richText.extractEntities()
+            expect(entities.mentions[0]?.id).toBe("u123")
+            expect(entities.hashtags[0]?.id).toBe("t456")
+        })
+
+        it("deve formatar corretamente para UI com prefixos customizados", () => {
+            const richText = new RichText({
+                mentionPrefix: "~",
+                hashtagPrefix: "+"
+            })
+            richText.setText("Olá ~alice veja +tech")
+
+            const ui = richText.formatToUI()
+            expect(ui.text).toBe("Olá ~alice veja +tech")
+
+            const mentions = ui.entities.filter((e) => e.type === "mention")
+            const hashtags = ui.entities.filter((e) => e.type === "hashtag")
+
+            expect(mentions).toHaveLength(1)
+            expect(hashtags).toHaveLength(1)
+            expect(mentions[0]?.text).toBe("alice")
+            expect(hashtags[0]?.text).toBe("tech")
+        })
+
+        it("não deve confundir prefixo padrão com customizado", () => {
+            const richText = new RichText({ mentionPrefix: "~" })
+            richText.setText("@alice ~bob")
+
+            const enriched = richText.getEnrichedText()
+            // Deve processar apenas ~bob, não @alice
+            expect(enriched).toContain("[txt:bob, ent:mention]")
+            expect(enriched).not.toContain("[txt:alice, ent:mention]")
+            expect(enriched).toContain("@alice") // @ permanece como texto normal
+        })
+
+        it("deve manter prefixos customizados após updateText", () => {
+            const richText = new RichText({ mentionPrefix: "~" })
+            richText.setText("~alice")
+            richText.updateText("~bob")
+
+            const enriched = richText.getEnrichedText()
+            expect(enriched).toContain("[txt:bob, ent:mention]")
+
+            const normal = richText.formatToNormal()
+            expect(normal).toBe("~bob")
+        })
+
+        it("deve processar múltiplas entidades com prefixos customizados", () => {
+            const richText = new RichText({
+                mentionPrefix: "~",
+                hashtagPrefix: "+"
+            })
+            richText.setText("~alice ~bob +tech +coding +webdev https://example.com", {
+                mentions: { alice: "u1", bob: "u2" },
+                hashtags: { tech: "t1", coding: "t2", webdev: "t3" }
+            })
+
+            const entities = richText.extractEntities()
+            expect(entities.mentions).toHaveLength(2)
+            expect(entities.hashtags).toHaveLength(3)
+            expect(entities.urls).toHaveLength(1)
+
+            const ui = richText.formatToUI()
+            const mentions = ui.entities.filter((e) => e.type === "mention")
+            const hashtags = ui.entities.filter((e) => e.type === "hashtag")
+
+            expect(mentions).toHaveLength(2)
+            expect(hashtags).toHaveLength(3)
+        })
+
+        it("deve extrair entidades corretamente com prefixo customizado", () => {
+            const richText = new RichText({ mentionPrefix: "~", hashtagPrefix: "+" })
+            richText.setText("~alice ~bob +tech", {
+                mentions: { alice: "user_1", bob: "user_2" },
+                hashtags: { tech: "tag_1" }
+            })
+
+            const entities = richText.extractEntities()
+
+            expect(entities.mentions).toHaveLength(2)
+            expect(entities.mentions[0]).toEqual({ text: "alice", id: "user_1" })
+            expect(entities.mentions[1]).toEqual({ text: "bob", id: "user_2" })
+            expect(entities.hashtags).toHaveLength(1)
+            expect(entities.hashtags[0]).toEqual({ text: "tech", id: "tag_1" })
+        })
+
+        it("deve suportar formatToEnriched diretamente com prefixos customizados", () => {
+            const richText = new RichText({ mentionPrefix: "~" })
+            const result = richText.formatToEnriched("~alice ~bob", {
+                mentions: { alice: "u1" }
+            })
+
+            expect(result).toContain("[txt:alice, ent:mention, id:u1]")
+            expect(result).toContain("[txt:bob, ent:mention]")
+        })
+
+        it("deve processar texto complexo com prefixos customizados", () => {
+            const richText = new RichText({
+                mentionPrefix: "~",
+                hashtagPrefix: "+"
+            })
+            const text =
+                "Olá ~user.name_123 e ~user-test! Confira +hash_tag e +outro-tag em https://example.com/path"
+
+            richText.setText(text, {
+                mentions: {
+                    "user.name_123": "id_user_1",
+                    "user-test": "id_user_2"
+                },
+                hashtags: {
+                    hash_tag: "id_tag_1",
+                    "outro-tag": "id_tag_2"
+                }
+            })
+
+            const entities = richText.extractEntities()
+            expect(entities.mentions).toHaveLength(2)
+            expect(entities.hashtags).toHaveLength(2)
+            expect(entities.urls).toHaveLength(1)
+
+            const normal = richText.formatToNormal()
+            expect(normal).toBe(text)
+        })
+    })
 })

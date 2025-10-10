@@ -530,17 +530,17 @@ formatter.toRelativeTime(pastDate)
 
 ### Comparação de Idiomas
 
-| Português | Inglês | Short | Abbreviated |
-|-----------|--------|-------|-------------|
-| "agora" | "now" | "now" | "now" |
-| "30 segundos atrás" | "30 seconds ago" | "30s" | "30sec" |
-| "5 minutos atrás" | "5 minutes ago" | "5m" | "5min" |
-| "2 horas atrás" | "2 hours ago" | "2h" | "2h" |
-| "ontem" | "yesterday" | "1d" | "1d" |
-| "3 dias atrás" | "3 days ago" | "3d" | "3d" |
-| "2 semanas atrás" | "2 weeks ago" | "2w" | "2wk" |
-| "3 meses atrás" | "3 months ago" | "3mo" | "3mo" |
-| "2 anos atrás" | "2 years ago" | "2y" | "2y" |
+| Português           | Inglês           | Short | Abbreviated |
+| ------------------- | ---------------- | ----- | ----------- |
+| "agora"             | "now"            | "now" | "now"       |
+| "30 segundos atrás" | "30 seconds ago" | "30s" | "30sec"     |
+| "5 minutos atrás"   | "5 minutes ago"  | "5m"  | "5min"      |
+| "2 horas atrás"     | "2 hours ago"    | "2h"  | "2h"        |
+| "ontem"             | "yesterday"      | "1d"  | "1d"        |
+| "3 dias atrás"      | "3 days ago"     | "3d"  | "3d"        |
+| "2 semanas atrás"   | "2 weeks ago"    | "2w"  | "2wk"       |
+| "3 meses atrás"     | "3 months ago"   | "3mo" | "3mo"       |
+| "2 anos atrás"      | "2 years ago"    | "2y"  | "2y"        |
 
 ### Tempo Aproximado em Inglês
 

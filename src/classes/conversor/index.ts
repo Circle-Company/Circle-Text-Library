@@ -1,18 +1,80 @@
+// ============================================================================
+// Tipos e Configurações
+// ============================================================================
+
 export type setTextToSizeProps = {
     text: string
-    size: number
+    size?: number
 }
 
-export class Conversor {
+export interface ConversorConfig {
     /**
-     * Formata um texto cortando-o no tamanho especificado e adicionando "..."
-     * @param {setTextToSizeProps} props - Objeto com text e size
-     * @returns {string} - Texto formatado com "..." se necessário
+     * Tamanho padrão para cortar texto (usado quando size não é especificado)
+     * @default 100
      */
-    public formatSliceNumWithDots({ text, size }: setTextToSizeProps): string {
-        if (text?.length > size) {
-            return text.slice(0, size) + "..."
-        } else return text
+    defaultSliceLength?: number
+
+    /**
+     * Sufixo a ser adicionado ao cortar texto
+     * @default "..."
+     */
+    sliceSuffix?: string
+
+    /**
+     * Separador de milhares para formatação de números
+     * @default "."
+     */
+    thousandsSeparator?: string
+}
+
+// ============================================================================
+// Classe Conversor
+// ============================================================================
+
+/**
+ * Classe utilitária para conversão e formatação de texto e números.
+ *
+ * @example
+ * ```ts
+ * const conversor = new Conversor({
+ *   defaultSliceLength: 50,
+ *   sliceSuffix: '...',
+ *   thousandsSeparator: '.'
+ * })
+ * ```
+ */
+export class Conversor {
+    private readonly defaultSliceLength: number
+    private readonly sliceSuffix: string
+    private readonly thousandsSeparator: string
+
+    constructor(config?: ConversorConfig) {
+        this.defaultSliceLength = config?.defaultSliceLength ?? 100
+        this.sliceSuffix = config?.sliceSuffix ?? "..."
+        this.thousandsSeparator = config?.thousandsSeparator ?? "."
+    }
+
+    /**
+     * Formata um texto cortando-o no tamanho especificado e adicionando sufixo configurável.
+     *
+     * @param props - Objeto com text e size opcional
+     * @returns Texto formatado com sufixo se necessário
+     *
+     * @example
+     * ```ts
+     * conversor.sliceWithDots({ text: "Texto longo", size: 5 })
+     * // "Texto..."
+     *
+     * // Usando tamanho padrão configurado
+     * conversor.sliceWithDots({ text: "Texto muito longo" })
+     * ```
+     */
+    public sliceWithDots({ text, size }: setTextToSizeProps): string {
+        const useSize = size ?? this.defaultSliceLength
+        if (text?.length > useSize) {
+            return text.slice(0, useSize) + this.sliceSuffix
+        }
+        return text
     }
 
     /**
@@ -36,32 +98,37 @@ export class Conversor {
     }
 
     /**
-     * Formata um número adicionando pontos como separadores de milhares
-     * @param {number} num - Número a ser formatado
-     * @returns {string} - String formatada com pontos como separadores
+     * Formata um número adicionando separador de milhares configurável.
+     *
+     * @param num - Número a ser formatado
+     * @returns String formatada com separadores
+     *
+     * @example
+     * ```ts
+     * conversor.formatNumWithDots(1000000)
+     * // "1.000.000" (com separador padrão ".")
+     *
+     * // Com separador customizado
+     * const conversor = new Conversor({ thousandsSeparator: ',' })
+     * conversor.formatNumWithDots(1000000)
+     * // "1,000,000"
+     * ```
      */
     public formatNumWithDots(num: number): string {
-        // Convert the number to a string
         const numStr: string = num.toString()
-
-        // Split the string into an array of characters
         const numArray: string[] = numStr.split("")
 
-        // Initialize variables for tracking the position and adding dots
         let position: number = 0
         let formattedStr: string = ""
 
-        // Iterate through the characters in reverse order
+        // Iterar caracteres em ordem reversa
         for (let i = numArray.length - 1; i >= 0; i--) {
-            // Add the current character to the formatted string
             formattedStr = numArray[i] + formattedStr
-
-            // Increment the position
             position++
 
-            // Add a dot after every three characters, except for the last group
+            // Adicionar separador a cada 3 caracteres, exceto no último grupo
             if (position % 3 === 0 && i !== 0) {
-                formattedStr = "." + formattedStr
+                formattedStr = this.thousandsSeparator + formattedStr
             }
         }
 
@@ -73,7 +140,7 @@ export class Conversor {
      * @param {number} number - Número a ser convertido
      * @returns {string} - String formatada com unidade
      */
-    public convertNumToShortUnitText(number: number): string {
+    public convertNumToShort(number: number): string {
         if (number == null || number == 0) return "0"
 
         // Convert the number to a string
@@ -126,9 +193,5 @@ export class Conversor {
             // For numbers with more than 12 digits, return the rounded value
             return Math.floor(Number(numberStr)).toString()
         }
-    }
-
-    public formatToEnrichedString(text: string): string {
-        return text.replace(/<br\s*\/?>/g, "\n")
     }
 }

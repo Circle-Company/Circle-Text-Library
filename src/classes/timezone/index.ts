@@ -1,4 +1,4 @@
-export enum TimezoneCodes {
+export enum TimezoneCode {
     UTC = "UTC",
     BRT = "BRT",
     BRST = "BRST",
@@ -16,38 +16,34 @@ export enum TimezoneCodes {
 }
 
 export interface TimezoneConfig {
-    timezoneCode: TimezoneCodes
+    timezoneCode: TimezoneCode
 }
 
 export class Timezone {
-    private readonly timezone: number
-    private readonly code: TimezoneCodes
+    private timezone: number
+    private code: TimezoneCode
 
-    constructor(timezoneCode: TimezoneCodes) {
+    constructor() {
+        this.code = TimezoneCode.UTC
+        this.timezone = 0
+    }
+
+    public setLocalTimezone(timezoneCode: TimezoneCode) {
+        if (timezoneCode == TimezoneCode.UTC) this.timezone = 0
+        if (timezoneCode == TimezoneCode.BRT) this.timezone = -3
+        if (timezoneCode == TimezoneCode.BRST) this.timezone = -2
+        if (timezoneCode == TimezoneCode.EST) this.timezone = -5
+        if (timezoneCode == TimezoneCode.EDT) this.timezone = -4
+        if (timezoneCode == TimezoneCode.CST) this.timezone = -6
+        if (timezoneCode == TimezoneCode.CDT) this.timezone = -5
+        if (timezoneCode == TimezoneCode.MST) this.timezone = -7
+        if (timezoneCode == TimezoneCode.MDT) this.timezone = -6
+        if (timezoneCode == TimezoneCode.PST) this.timezone = -8
+        if (timezoneCode == TimezoneCode.PDT) this.timezone = -7
+        if (timezoneCode == TimezoneCode.AKST) this.timezone = -9
+        if (timezoneCode == TimezoneCode.AKDT) this.timezone = -8
+        if (timezoneCode == TimezoneCode.HST) this.timezone = -10
         this.code = timezoneCode
-        this.timezone = this.setTimezone(timezoneCode)
-    }
-
-    public getTimezoneCodes(): TimezoneCodes[] {
-        return Object.values(TimezoneCodes)
-    }
-
-    public setTimezone(timezoneCode: TimezoneCodes): number {
-        if (timezoneCode == TimezoneCodes.UTC) return 0
-        if (timezoneCode == TimezoneCodes.BRT) return -3
-        if (timezoneCode == TimezoneCodes.BRST) return -2
-        if (timezoneCode == TimezoneCodes.EST) return -5
-        if (timezoneCode == TimezoneCodes.EDT) return -4
-        if (timezoneCode == TimezoneCodes.CST) return -6
-        if (timezoneCode == TimezoneCodes.CDT) return -5
-        if (timezoneCode == TimezoneCodes.MST) return -7
-        if (timezoneCode == TimezoneCodes.MDT) return -6
-        if (timezoneCode == TimezoneCodes.PST) return -8
-        if (timezoneCode == TimezoneCodes.PDT) return -7
-        if (timezoneCode == TimezoneCodes.AKST) return -9
-        if (timezoneCode == TimezoneCodes.AKDT) return -8
-        if (timezoneCode == TimezoneCodes.HST) return -10
-        return 0
     }
 
     public localToUTC(date: Date): Date {
@@ -64,60 +60,38 @@ export class Timezone {
         return new Date(date.getTime() + this.timezone * 60 * 60 * 1000)
     }
 
-    public getTimezoneOffset(): number {
+    public getOffset(): number {
         return this.timezone
     }
 
-    public getCurrentTimezoneCode(): TimezoneCodes {
+    public getCode(): TimezoneCode {
         return this.code
     }
 
-    public static getCurrentTimezone(): TimezoneCodes {
-        const offset = new Date().getTimezoneOffset()
-        const ourOffset = -offset / 60
-
-        if (ourOffset === 0) return TimezoneCodes.UTC
-        if (ourOffset === -3) return TimezoneCodes.BRT
-        if (ourOffset === -2) return TimezoneCodes.BRST
-        if (ourOffset === -5) return TimezoneCodes.EST
-        if (ourOffset === -4) return TimezoneCodes.EDT
-        if (ourOffset === -6) return TimezoneCodes.CST
-        if (ourOffset === -5) return TimezoneCodes.CDT
-        if (ourOffset === -7) return TimezoneCodes.MST
-        if (ourOffset === -6) return TimezoneCodes.MDT
-        if (ourOffset === -8) return TimezoneCodes.PST
-        if (ourOffset === -7) return TimezoneCodes.PDT
-        if (ourOffset === -9) return TimezoneCodes.AKST
-        if (ourOffset === -8) return TimezoneCodes.AKDT
-        if (ourOffset === -10) return TimezoneCodes.HST
-
-        // Se não encontrar correspondência exata, retorna UTC
-        return TimezoneCodes.UTC
+    public getOffsetFromCode(code: TimezoneCode): number {
+        if (code === TimezoneCode.UTC) return 0
+        if (code === TimezoneCode.BRT) return -3
+        if (code === TimezoneCode.BRST) return -2
+        if (code === TimezoneCode.EST) return -5
+        if (code === TimezoneCode.EDT) return -4
+        if (code === TimezoneCode.CST) return -6
+        if (code === TimezoneCode.MST) return -7
+        if (code === TimezoneCode.PST) return -8
+        if (code === TimezoneCode.AKST) return -9
+        if (code === TimezoneCode.HST) return -10
+        return 0
     }
-
-    /**
-     * Converte um número (offset em horas) para o código do timezone correspondente
-     * @param offset - Offset em horas (ex: 0 para UTC, -3 para BRT, -5 para EST)
-     * @returns TimezoneCodes - Código do timezone correspondente
-     *
-     * Exemplo:
-     * Timezone.getTimezoneFromOffset(0)   // TimezoneCodes.UTC
-     * Timezone.getTimezoneFromOffset(-3)  // TimezoneCodes.BRT
-     * Timezone.getTimezoneFromOffset(-5)  // TimezoneCodes.EST
-     */
-    public static getTimezoneFromOffset(offset: number): TimezoneCodes {
-        if (offset === 0) return TimezoneCodes.UTC
-        if (offset === -3) return TimezoneCodes.BRT
-        if (offset === -2) return TimezoneCodes.BRST
-        if (offset === -5) return TimezoneCodes.EST
-        if (offset === -4) return TimezoneCodes.EDT
-        if (offset === -6) return TimezoneCodes.CST
-        if (offset === -7) return TimezoneCodes.MST
-        if (offset === -8) return TimezoneCodes.PST
-        if (offset === -9) return TimezoneCodes.AKST
-        if (offset === -10) return TimezoneCodes.HST
-
-        // Se não encontrar correspondência exata, retorna UTC
-        return TimezoneCodes.UTC
+    public getCodeFromOffset(offset: number): TimezoneCode {
+        if (offset === 0) return TimezoneCode.UTC
+        if (offset === -3) return TimezoneCode.BRT
+        if (offset === -2) return TimezoneCode.BRST
+        if (offset === -5) return TimezoneCode.EST
+        if (offset === -4) return TimezoneCode.EDT
+        if (offset === -6) return TimezoneCode.CST
+        if (offset === -7) return TimezoneCode.MST
+        if (offset === -8) return TimezoneCode.PST
+        if (offset === -9) return TimezoneCode.AKST
+        if (offset === -10) return TimezoneCode.HST
+        return TimezoneCode.UTC
     }
 }

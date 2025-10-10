@@ -1,77 +1,123 @@
+import type { CircleTextProps } from "./types"
+import { Conversor } from "./classes/conversor/index.js"
+import { DateFormatter } from "./classes/date/index.js"
+import { Extractor } from "./classes/extractor/index.js"
+import { RichText } from "./classes/rich.text/index.js"
+import { SentimentExtractor } from "./classes/sentiment/index.js"
 // Copyright 2025 Circle Company, Inc.
 // Licensed under the Circle License, Version 1.0
-
-import {
-    CircleTextExtract,
-    CircleTextProps,
-    CircleTextTransform,
-    CircleTextValidation
-} from "./types"
-import { SentimentExtractor, SentimentReturnProps } from "./classes/sentimentExtractor/index.js"
-import { Timezone, TimezoneCodes } from "./classes/timezone/index.js"
-
-import { Conversor } from "./classes/conversor/index.js"
-import { ExtractOptions } from "./types"
-import { Extractor } from "./classes/extractor.js"
-import { KeywordExtractor } from "./classes/keywordExtractor.js"
-import { RichText } from "./classes/rich.text/index.js"
+import { Timezone } from "./classes/timezone/index.js"
 import { Validator } from "./classes/validator/index.js"
 
-// Classe principal
+/**
+ * Biblioteca completa de utilitários de texto para validação, extração e transformação.
+ *
+ * @example
+ * ```ts
+ * const textLib = new TextLibrary({
+ *   validationRules: {
+ *     username: { minLength: { enabled: true, value: 3 } }
+ *   },
+ *   extractorConfig: {
+ *     mentionPrefix: '@',
+ *     hashtagPrefix: '#'
+ *   },
+ *   richTextConfig: {
+ *     mentionPrefix: '@',
+ *     hashtagPrefix: '#'
+ *   }
+ * })
+ *
+ * // Validação
+ * const result = textLib.validator.username('@john_doe')
+ *
+ * // Extração
+ * textLib.extractor.setText('Olá @user veja #topic')
+ * const keywords = textLib.extractor.keywords()  // ['topic', 'user', ...]
+ * const entities = textLib.extractor.entities({ mentions: true })  // { mentions: ['@user'] }
+ *
+ * // Análise de sentimento
+ * const sentiment = textLib.sentiment.analyze('Texto incrível!')
+ *
+ * // Transformação
+ * const formatted = textLib.conversor.formatNumWithDots(1000000)
+ * const localTime = textLib.timezone.UTCToLocal(new Date())
+ *
+ * // Formatação de datas
+ * const relativeTime = textLib.date.toRelativeTime(new Date())  // "10 minutos atrás"
+ *
+ * // Rich Text com prefixos customizados
+ * textLib.rich.setText('Olá @user #topic')
+ * ```
+ */
 export class TextLibrary {
-    public validate: CircleTextValidation
-    public extract: CircleTextExtract
-    public transform: CircleTextTransform
-    public richText: RichText
-    private conversor: Conversor
-    private validator: Validator
+    public validator: Validator
+    public extractor: Extractor
+    public sentiment: SentimentExtractor
+    public conversor: Conversor
+    public date: DateFormatter
+    public readonly rich: RichText
+    public readonly timezone: Timezone
 
     constructor(config: CircleTextProps) {
-        // Inicializa o gerenciador de validação com regras customizadas
-        this.conversor = new Conversor()
+        // Instancia todas as classes filhas com suas configurações
         this.validator = new Validator(config.validationRules)
-        this.richText = new RichText()
-        this.validate = {
-            username: this.validator.username.bind(this.validator),
-            hashtag: this.validator.hashtag.bind(this.validator),
-            url: this.validator.url.bind(this.validator),
-            description: this.validator.description.bind(this.validator),
-            name: this.validator.name.bind(this.validator),
-            password: this.validator.password.bind(this.validator)
-        }
-
-        this.extract = {
-            content: (text: string, options?: ExtractOptions) => {
-                const extractor = new Extractor(text)
-                // Se nenhuma opção fornecida, extrair tudo por padrão
-                if (options === undefined) {
-                    return extractor.extract({ mentions: true, hashtags: true, urls: true })
-                }
-                return extractor.extract(options)
-            },
-            keywords: (text: string): string[] =>
-                new KeywordExtractor(config.keywordConfig).extract(text),
-
-            sentiment: (text: string): SentimentReturnProps =>
-                new SentimentExtractor(config.sentimentConfig).analyze(text)
-        }
-        this.transform = {
-            number: {
-                formatWithDots: this.conversor.formatNumWithDots,
-                convertToShortUnitText: this.conversor.convertNumToShortUnitText,
-                formatSliceWithDots: this.conversor.formatSliceNumWithDots
-            },
-            text: {
-                capitalizeFirstLetter: this.conversor.capitalizeFirstLetter,
-                richText: this.richText
-            },
-            timezone: new Timezone(config.timezoneConfig?.timezoneCode ?? TimezoneCodes.UTC)
-        }
+        this.extractor = new Extractor(config.extractorConfig)
+        this.sentiment = new SentimentExtractor(config.sentimentConfig)
+        this.conversor = new Conversor(config.conversorConfig)
+        this.date = new DateFormatter(config.dateFormatterConfig)
+        this.rich = new RichText(config.richTextConfig)
+        this.timezone = new Timezone()
     }
 }
 
-// Exportar classes e tipos para uso direto
-export { Timezone, TimezoneCodes } from "./classes/timezone/index.js"
-export { RichText } from "./classes/rich.text/index.js"
+// Export default
+export default TextLibrary
+
+// Classes utilitárias para uso direto
 export { Conversor } from "./classes/conversor/index.js"
-export type { EntityMapping, RichTextEntity, RichTextUIFormat } from "./classes/rich.text/index.js"
+export { DateFormatter } from "./classes/date/index.js"
+export { Extractor } from "./classes/extractor/index.js"
+export { RichText } from "./classes/rich.text/index.js"
+export { SentimentExtractor } from "./classes/sentiment/index.js"
+export { Timezone, TimezoneCode } from "./classes/timezone/index.js"
+export { Validator } from "./classes/validator/index.js"
+
+// Tipos principais
+export type { CircleTextProps } from "./types"
+
+// Tipos de validação
+export type {
+    UsernameValidationRules,
+    HashtagValidationRules,
+    UrlValidationRules,
+    DescriptionValidationRules,
+    NameValidationRules,
+    PasswordValidationRules,
+    ValidationRule
+} from "./types"
+
+// Tipos de Extractor
+export type { ExtractorConfig } from "./classes/extractor/index.js"
+export type { ExtractOptions, PartialExtractResult } from "./types"
+
+// Tipos de RichText
+export type {
+    EntityMapping,
+    RichTextConfig,
+    RichTextEntity,
+    RichTextUIFormat
+} from "./classes/rich.text/index.js"
+
+// Tipos de Sentiment
+export type { SentimentReturnProps, SentimentExtractorConfig } from "./classes/sentiment/index.js"
+
+// Tipos de Conversor
+export type { ConversorConfig } from "./classes/conversor/index.js"
+
+// Tipos de DateFormatter
+export type {
+    DateFormatterConfig,
+    DateFormatStyle,
+    DateFormatLocale
+} from "./classes/date/index.js"
