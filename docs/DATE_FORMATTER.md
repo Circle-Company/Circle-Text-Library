@@ -309,16 +309,16 @@ formatter.setRecentTimeThreshold(0)
 const date = new Date("2024-01-15T12:00:00Z")
 
 formatter.toFullDate(date)
-// pt-BR: "15 de janeiro de 2024"
-// en-US: "January 15, 2024"
+// pt: "15 de janeiro de 2024"
+// en: "January 15, 2024"
 ```
 
 ### Data Curta
 
 ```typescript
 formatter.toShortDate(date)
-// pt-BR: "15/01/2024"
-// en-US: "01/15/2024"
+// pt: "15/01/2024"
+// en: "01/15/2024"
 ```
 
 ### Hora
@@ -397,7 +397,7 @@ const formatter = textLib.date
 formatter.setStyle("short") // 'full' | 'short' | 'abbreviated'
 
 // Locale
-formatter.setLocale("en-US") // 'pt-BR' | 'en-US'
+formatter.setLocale("en") // 'pt' | 'en'
 
 // Prefixo e Sufixo
 formatter.setUsePrefix(true)
