@@ -67,7 +67,7 @@ const utcTimezone = new Timezone(TimezoneCode.UTC)
 ### Com Timezone do Sistema
 
 ```typescript
-// Detecta automaticamente o timezone do sistema
+// Usa UTC por padrão
 const timezone = new Timezone()
 ```
 
