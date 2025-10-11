@@ -18,9 +18,9 @@ O módulo DateFormatter converte datas em texto humanizado para uso em redes soc
 ### Inicialização
 
 ```typescript
-import { TextLibrary, DateFormatterConfig } from "circle-text-library"
+import { TextLibrary, TextLibraryProps } from "circle-text-library"
 
-const config: DateFormatterConfig = {
+const config: TextLibraryProps["DateFormatterConfig"] = {
     style: "full", // Estilo de formatação
     locale: "pt", // Locale para datas completas
     usePrefix: false, // Usar "há" antes do tempo
