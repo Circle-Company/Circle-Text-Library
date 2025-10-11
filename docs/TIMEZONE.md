@@ -64,13 +64,6 @@ const estTimezone = new Timezone(TimezoneCode.EST)
 const utcTimezone = new Timezone(TimezoneCode.UTC)
 ```
 
-### Com Timezone do Sistema
-
-```typescript
-// Usa UTC por padrão
-const timezone = new Timezone()
-```
-
 ### Alterar Timezone
 
 ```typescript
