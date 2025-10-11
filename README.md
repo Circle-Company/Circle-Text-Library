@@ -1,4 +1,4 @@
-# 🔄 Circle Text Library
+# Circle Text Library
 
 > Biblioteca JavaScript/TypeScript síncrona para validação, extração e processamento de texto, e análise de sentimento desenvolvida para o Circle App.
 
