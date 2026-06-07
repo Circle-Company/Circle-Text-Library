@@ -1,16 +1,16 @@
-# Circle Text Library
+# 🔧 Circle Text Library
 
-> Biblioteca JavaScript/TypeScript síncrona para validação, extração e processamento de texto, e análise de sentimento desenvolvida para o Circle App.
+Biblioteca **JavaScript/TypeScript** para **validação, extração e análise de texto**, feita para redes sociais. Sem dependências pesadas, **sem LLM** — só **algoritmos rápidos, determinísticos e tipados**, com **injeção de dependência** e **engines independentes** que você usa sozinhas ou compostas.
 
-## ✨ Principais Funcionalidades
+- ✅ **Validação configurável** — defina as regras 1×, sobrescreva pontualmente (merge).
+- 📝 **Rich Text** — menções/hashtags/URLs/e-mails em uma varredura; render seguro p/ HTML/tokens; serialização mínima.
+- 🫀 **Sentimento** — léxico **pt-BR e inglês** + regras, com explicabilidade.
+- 🔍 **Keywords** — extração com stemming/stopwords pt-BR.
+- 🌍 **Timezone** — `Intl` nativo, com horário de verão automático.
+- 🔤 **Formatadores** — número/texto locale-aware.
+- 💉 **DI de verdade** — cada engine recebe config por construtor; a classe mãe só injeta.
 
-- **🛡️ Sistema de Validação Configurável**: Validação robusta de usernames, hashtags, URLs, senhas e mais
-- **🔍 Extração de Entidades**: Extração inteligente de menções, hashtags, URLs e keywords
-- **💭 Análise de Sentimento**: Análise contextual em português com suporte a emojis
-- **📅 Formatação de Datas**: Conversão de datas para texto humanizado com múltiplas opções
-- **✍️ Rich Text**: Formatação enriquecida com identificação automática de entidades
-- **🔢 Conversão Numérica**: Formatação de números e textos para exibição
-- **🌍 Gerenciamento de Timezone**: Conversão entre fusos horários com 14 zonas suportadas
+---
 
 ## 📦 Instalação
 
@@ -18,110 +18,117 @@
 npm install circle-text-library
 ```
 
-## 🚀 Uso Rápido
+Requer **Node >= 16**. ESM nativo (`"type": "module"`).
+
+---
+
+## 🚀 Exemplo rápido
+
+A classe mãe `TextLibrary` agrega e injeta tudo:
 
 ```typescript
 import { TextLibrary } from "circle-text-library"
 
-const textLib = new TextLibrary({
-    validationRules: {
-        username: {
-            minLength: { enabled: true, value: 3, description: "Mínimo 3 caracteres" },
-            maxLength: { enabled: true, value: 20, description: "Máximo 20 caracteres" }
-        }
-    }
+const ct = new TextLibrary({
+    validation: { username: { minLength: 4, maxLength: 20 } }
 })
 
-// Validação
-const validation = textLib.validator.username("john_doe")
-// { isValid: true, errors: [] }
+ct.validator.username("joao_silva")             // { isValid: true, errors: [] }
+ct.sentiment.analyze("isso é ótimo demais")     // { sentiment: "positive", intensity: 0.725 }
+ct.keywords.extract("inteligência artificial e programação")  // ["intelig", "artifici", "programacao"]
+ct.timezone.format("2024-01-15T15:30:00Z")      // "15/01/2024, 12:30"
+ct.format.number.compact(12500)                 // "12,5 mil"
+```
 
-// Extração
-textLib.extractor.setText("Olá @user veja #tech em https://example.com")
-const entities = textLib.extractor.entities({ mentions: true, hashtags: true })
-// { mentions: ["@user"], hashtags: ["#tech"] }
+Ou importe **só a engine que precisa** (subpath):
 
-// Análise de Sentimento
-const sentiment = textLib.sentiment.analyze("Estou muito feliz!")
-// { sentiment: "positive", intensity: 0.85 }
+```typescript
+import { SentimentExtractor } from "circle-text-library/sentiment"
+import { RichText } from "circle-text-library/rich-text"
 
-// Formatação de Datas
-const formatter = textLib.date
-formatter.setStyle("full")
-const relative = formatter.toRelativeTime(new Date(Date.now() - 300000))
-// "5 minutos atrás"
+SentimentExtractor.analyze("amei demais!")              // { sentiment: "positive", ... }
+new SentimentExtractor({ language: "en" }).analyze("I love it!")   // inglês
+RichText.extract("Oi @alice veja #js em https://x.com")
+// { mentions: ["@alice"], hashtags: ["#js"], urls: ["https://x.com"], emails: [] }
 ```
 
 ---
 
-## 📚 Documentação Completa
+## 📚 Documentação por classe
 
-**[Ver Índice Completo da Documentação →](./docs/README.md)**
+Cada engine tem um guia detalhado com API, configuração e **casos de uso**:
 
-### 🎯 Início Rápido
+| Engine | Import | Guia |
+|--------|--------|------|
+| 🧩 **TextLibrary** (facade + DI) | `circle-text-library` | [docs/text-library.md](./docs/text-library.md) |
+| ✅ **Validator** | `circle-text-library/validator` | [docs/validator.md](./docs/validator.md) |
+| 📝 **RichText** | `circle-text-library/rich-text` | [docs/rich-text.md](./docs/rich-text.md) |
+| 🫀 **SentimentExtractor** | `circle-text-library/sentiment` | [docs/sentiment.md](./docs/sentiment.md) |
+| 🔍 **KeywordExtractor** | `circle-text-library/keywords` | [docs/keywords.md](./docs/keywords.md) |
+| 🌍 **Timezone** | `circle-text-library/timezone` | [docs/timezone.md](./docs/timezone.md) |
+| 🔤 **Formatadores** | `circle-text-library/conversor` | [docs/formatter.md](./docs/formatter.md) |
 
-- [Guia de Configuração](./docs/CONFIGURATION.md) - Setup completo e configuração da biblioteca
-- [Exemplos Práticos](./docs/EXAMPLES.md) - Casos de uso reais e workflows completos
-
-### 📖 Módulos Principais
-
-**🛡️ Validação e Segurança**
-
-- [Sistema de Validação](./docs/VALIDATION.md) - Validação de usernames, passwords, URLs e mais
-
-**🔍 Extração e Análise**
-
-- [Sistema de Extração](./docs/EXTRACTION.md) - Extração de entidades e keywords
-- [Análise de Sentimento](./docs/SENTIMENT.md) - Análise contextual com suporte a emojis
-
-**✨ Formatação e Conversão**
-
-- [Formatador de Datas](./docs/DATE_FORMATTER.md) - Conversão de datas para texto humanizado
-- [Conversor Numérico](./docs/CONVERSOR.md) - Formatação de números e manipulação de texto
-- [Rich Text](./docs/RICH_TEXT.md) - Formatação enriquecida com entidades
-- [Gerenciamento de Timezone](./docs/TIMEZONE.md) - Conversão entre fusos horários
-
-### 🔧 Referência Técnica
-
-- [Referência Completa da API](./docs/API_REFERENCE.md) - Documentação de todas as classes e métodos
+> **Decisões de arquitetura** (um `.md` de fluxo por engine): veja a pasta [`docs/`](./docs) (`*-flow.md`).
 
 ---
 
-## 🌟 Características Principais
+## 🏷️ TypeScript
 
-### ⚡ Performance
+Todas as tipagens são exportadas — da raiz e de cada subpath:
 
-- Processamento síncrono e otimizado
-- Cache inteligente para análises repetidas
-
-### 🔒 Segurança
-
-- Validação rigorosa de senhas com detecção de padrões inseguros
-- Bloqueio de senhas comuns
-- Proteção contra caracteres maliciosos
-
-### 🎨 Flexibilidade
-
-- Regras de validação completamente configuráveis
-- Mensagens de erro personalizáveis
-- Suporte a português brasileiro e inglês americano
-
-### 🇧🇷 Suporte a Português
-
-- Análise de sentimento otimizada para português brasileiro
-- Suporte a gírias e expressões coloquiais
-- Detecção de ironia e sarcasmo
-- Processamento de acentuação
+```typescript
+import type {
+    TextLibraryConfig, Configurable, DeepPartial,
+    ValidationConfig, ValidationResult,
+    SentimentExtractorConfig, SentimentReturnProps, SentimentLanguage,
+    KeywordExtractorConfig, TimezoneConfig, FormatterConfig
+} from "circle-text-library"
+```
 
 ---
 
-## 💻 Compatibilidade
+## 🧪 Desenvolvimento
 
-- **Node.js**: 14.x ou superior
-- **TypeScript**: 4.5 ou superior
-- **Browsers**: Modernos com suporte a ES2020
+A lib usa **[Vitest](https://vitest.dev)**. Os testes ficam em `__tests__/` ao lado de cada engine.
+
+```bash
+npm test               # toda a suíte (watch por padrão)
+npm test -- --run      # roda uma vez e sai (CI)
+npm run test:coverage  # cobertura (v8)
+npm run build          # compila para dist/ + .d.ts
+```
+
+Rodar um arquivo ou um teste por nome:
+
+```bash
+npx vitest run src/classes/validator/__tests__/password.spec.ts   # um arquivo
+npx vitest run -t "valida senha forte"                            # por nome
+npx vitest run src/classes/sentimentExtractor                     # uma engine inteira
+```
+
+---
+
+## 🗂️ Estrutura
+
+```
+src/
+├── index.ts                 # TextLibrary (composition root) + reexports/tipos
+├── core/                    # Configurable, DeepPartial, mergeConfig (DI)
+├── types.ts                 # tipos de validação compartilhados
+├── classes/
+│   ├── validator/           # Validator + charset/defineRules
+│   ├── rich.text/           # RichText (segmentos, extração, render, storage)
+│   ├── sentimentExtractor/  # SentimentExtractor (pt-BR + en)
+│   ├── keywordExtractor.ts  # KeywordExtractor
+│   ├── timezone/            # Timezone (Intl)
+│   └── conversor/           # NumberFormatter / TextFormatter / Formatter
+└── data/
+    ├── pt-br/               # léxicos e listas pt-BR (JSON estáticos)
+    └── en/                  # léxicos de sentimento em inglês
+```
+
+---
 
 ## 📄 Licença
 
-Copyright 2025 Circle Company, Inc.  
-Licensed under the Circle License, Version 1.0
+[MIT](./LICENCE) © Circle LLC

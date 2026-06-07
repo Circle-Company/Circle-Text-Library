@@ -1,197 +1,331 @@
-// ============================================================================
-// Tipos e Configurações
-// ============================================================================
+// Copyright 2025 Circle LLC
+// Licensed under the MIT License
 
-export type setTextToSizeProps = {
-    text: string
-    size?: number
-}
-
-export interface ConversorConfig {
-    /**
-     * Tamanho padrão para cortar texto (usado quando size não é especificado)
-     * @default 100
-     */
-    defaultSliceLength?: number
-
-    /**
-     * Sufixo a ser adicionado ao cortar texto
-     * @default "..."
-     */
-    sliceSuffix?: string
-
-    /**
-     * Separador de milhares para formatação de números
-     * @default "."
-     */
-    thousandsSeparator?: string
-}
-
-// ============================================================================
-// Classe Conversor
-// ============================================================================
+import type { Configurable, DeepPartial } from "../../core/config.js"
+import { mergeConfig } from "../../core/config.js"
 
 /**
- * Classe utilitária para conversão e formatação de texto e números.
- *
- * @example
- * ```ts
- * const conversor = new Conversor({
- *   defaultSliceLength: 50,
- *   sliceSuffix: '...',
- *   thousandsSeparator: '.'
- * })
- * ```
+ * Configuração compartilhada pelos formatters. O único eixo configurável é o
+ * `locale`, usado por todas as formatações locale-aware (`Intl`).
  */
-export class Conversor {
-    private readonly defaultSliceLength: number
-    private readonly sliceSuffix: string
-    private readonly thousandsSeparator: string
+export interface FormatterConfig {
+    /** Locale BCP-47. Default: `"pt-BR"`. */
+    locale?: string
+}
 
-    constructor(config?: ConversorConfig) {
-        this.defaultSliceLength = config?.defaultSliceLength ?? 100
-        this.sliceSuffix = config?.sliceSuffix ?? "..."
-        this.thousandsSeparator = config?.thousandsSeparator ?? "."
+/** Locale default usado pelas conveniências estáticas e quando nada é informado. */
+const DEFAULT_LOCALE = "pt-BR"
+
+/** Opções do `TextFormatter.truncate`. */
+export interface TruncateOptions {
+    /** Reticências adicionadas ao final. Contam no orçamento de `size`. Default `"…"`. */
+    ellipsis?: string
+    /** Se `true`, evita cortar no meio de uma palavra. Default `false`. */
+    byWord?: boolean
+}
+
+/** Resolve a config para um objeto completo (sem campos opcionais ausentes). */
+function resolveConfig(config?: FormatterConfig): Required<FormatterConfig> {
+    return { locale: config?.locale ?? DEFAULT_LOCALE }
+}
+
+// ────────────────────────────────────────────────────────────────────────────
+// NumberFormatter
+// ────────────────────────────────────────────────────────────────────────────
+
+/**
+ * Formatação de números locale-aware via `Intl.NumberFormat`. Cada método tem
+ * uma versão de instância (respeita o locale fixado) e uma estática de
+ * conveniência (usa o locale default `pt-BR`).
+ */
+export class NumberFormatter implements Configurable<FormatterConfig> {
+    public readonly config: Readonly<Required<FormatterConfig>>
+    private readonly locale: string
+
+    constructor(config: FormatterConfig = {}) {
+        this.config = Object.freeze(resolveConfig(config))
+        this.locale = this.config.locale
+    }
+
+    public withConfig(patch: DeepPartial<FormatterConfig>): this {
+        const next = mergeConfig<FormatterConfig>(this.config, patch)
+        return new NumberFormatter(next) as this
+    }
+
+    /** Separador de milhar locale-aware. Ex (pt-BR): `1234567 → "1.234.567"`. */
+    public thousands(n: number): string {
+        return new Intl.NumberFormat(this.locale).format(n)
+    }
+
+    /** Notação compacta. Ex (pt-BR): `1500 → "1,5 mil"`; (en-US): `1500 → "1.5K"`. */
+    public compact(n: number): string {
+        return new Intl.NumberFormat(this.locale, {
+            notation: "compact",
+            maximumFractionDigits: 1
+        }).format(n)
+    }
+
+    /** Moeda. Ex (pt-BR, BRL): `1234.5 → "R$ 1.234,50"`. */
+    public currency(n: number, code: string = "BRL"): string {
+        return new Intl.NumberFormat(this.locale, {
+            style: "currency",
+            currency: code
+        }).format(n)
     }
 
     /**
-     * Formata um texto cortando-o no tamanho especificado e adicionando sufixo configurável.
-     *
-     * @param props - Objeto com text e size opcional
-     * @returns Texto formatado com sufixo se necessário
-     *
-     * @example
-     * ```ts
-     * conversor.sliceWithDots({ text: "Texto longo", size: 5 })
-     * // "Texto..."
-     *
-     * // Usando tamanho padrão configurado
-     * conversor.sliceWithDots({ text: "Texto muito longo" })
-     * ```
+     * Percentual. O valor é uma fração (`0.25 → "25%"`).
+     * @param fraction casas decimais máximas (default `0`).
      */
-    public sliceWithDots({ text, size }: setTextToSizeProps): string {
-        const useSize = size ?? this.defaultSliceLength
-        if (text?.length > useSize) {
-            return text.slice(0, useSize) + this.sliceSuffix
+    public percent(n: number, fraction: number = 0): string {
+        return new Intl.NumberFormat(this.locale, {
+            style: "percent",
+            maximumFractionDigits: fraction
+        }).format(n)
+    }
+
+    /**
+     * Decimal com número fixo de casas. Ex (pt-BR): `3.14159, 2 → "3,14"`.
+     * @param places casas decimais (default `2`).
+     */
+    public decimal(n: number, places: number = 2): string {
+        return new Intl.NumberFormat(this.locale, {
+            minimumFractionDigits: places,
+            maximumFractionDigits: places
+        }).format(n)
+    }
+
+    /** Ordinal. Ex (pt-BR): `3 → "3º"`; (en-US): `3 → "3rd"`. */
+    public ordinal(n: number): string {
+        const pr = new Intl.PluralRules(this.locale, { type: "ordinal" })
+        const category = pr.select(n)
+        if (this.locale.toLowerCase().startsWith("pt")) {
+            return `${n}º`
         }
-        return text
-    }
-
-    /**
-     * Capitaliza a primeira letra de um texto
-     * @param {string} text - Texto a ser capitalizado
-     * @returns {string} - Texto com primeira letra maiúscula
-     */
-    public capitalizeFirstLetter(text: string): string {
-        if (!text) return ""
-        return text.charAt(0).toUpperCase() + text.slice(1)
-    }
-
-    /**
-     * Inverte uma string
-     * @param {string} str - String a ser invertida
-     * @returns {string} - String invertida
-     */
-    public invertStr(str: string): string {
-        if (!str) return ""
-        return str.split("").reverse().join("")
-    }
-
-    /**
-     * Formata um número adicionando separador de milhares configurável.
-     *
-     * @param num - Número a ser formatado
-     * @returns String formatada com separadores
-     *
-     * @example
-     * ```ts
-     * conversor.formatNumWithDots(1000000)
-     * // "1.000.000" (com separador padrão ".")
-     *
-     * // Com separador customizado
-     * const conversor = new Conversor({ thousandsSeparator: ',' })
-     * conversor.formatNumWithDots(1000000)
-     * // "1,000,000"
-     * ```
-     */
-    public formatNumWithDots(num: number): string {
-        const numStr: string = num.toString()
-        const numArray: string[] = numStr.split("")
-
-        let position: number = 0
-        let formattedStr: string = ""
-
-        // Iterar caracteres em ordem reversa
-        for (let i = numArray.length - 1; i >= 0; i--) {
-            formattedStr = numArray[i] + formattedStr
-            position++
-
-            // Adicionar separador a cada 3 caracteres, exceto no último grupo
-            if (position % 3 === 0 && i !== 0) {
-                formattedStr = this.thousandsSeparator + formattedStr
-            }
+        const suffixes: Record<string, string> = {
+            one: "st",
+            two: "nd",
+            few: "rd",
+            other: "th"
         }
+        const suffix = suffixes[category] ?? "th"
+        return `${n}${suffix}`
+    }
 
-        return formattedStr
+    /** Tamanho de arquivo legível. Ex (pt-BR): `1048576 → "1 MB"`. */
+    public fileSize(bytes: number): string {
+        const units = ["B", "KB", "MB", "GB", "TB", "PB"] as const
+        const sign = bytes < 0 ? "-" : ""
+        let value = Math.abs(bytes)
+        let index = 0
+        while (value >= 1024 && index < units.length - 1) {
+            value /= 1024
+            index++
+        }
+        const unit = units[index] ?? "B"
+        const formatted = new Intl.NumberFormat(this.locale, {
+            maximumFractionDigits: 1
+        }).format(value)
+        return `${sign}${formatted} ${unit}`
+    }
+
+    // ── conveniências estáticas (locale default pt-BR) ──────────────────────
+    private static readonly defaultInstance = new NumberFormatter()
+
+    public static thousands(n: number): string {
+        return NumberFormatter.defaultInstance.thousands(n)
+    }
+    public static compact(n: number): string {
+        return NumberFormatter.defaultInstance.compact(n)
+    }
+    public static currency(n: number, code: string = "BRL"): string {
+        return NumberFormatter.defaultInstance.currency(n, code)
+    }
+    public static percent(n: number, fraction: number = 0): string {
+        return NumberFormatter.defaultInstance.percent(n, fraction)
+    }
+    public static decimal(n: number, places: number = 2): string {
+        return NumberFormatter.defaultInstance.decimal(n, places)
+    }
+    public static ordinal(n: number): string {
+        return NumberFormatter.defaultInstance.ordinal(n)
+    }
+    public static fileSize(bytes: number): string {
+        return NumberFormatter.defaultInstance.fileSize(bytes)
+    }
+}
+
+// ────────────────────────────────────────────────────────────────────────────
+// TextFormatter
+// ────────────────────────────────────────────────────────────────────────────
+
+/**
+ * Formatação de texto. Métodos sensíveis a Unicode usam `[...t]` para preservar
+ * pares surrogate (emoji). Versões de instância e estáticas, como o
+ * `NumberFormatter`.
+ */
+export class TextFormatter implements Configurable<FormatterConfig> {
+    public readonly config: Readonly<Required<FormatterConfig>>
+    private readonly locale: string
+
+    constructor(config: FormatterConfig = {}) {
+        this.config = Object.freeze(resolveConfig(config))
+        this.locale = this.config.locale
+    }
+
+    public withConfig(patch: DeepPartial<FormatterConfig>): this {
+        const next = mergeConfig<FormatterConfig>(this.config, patch)
+        return new TextFormatter(next) as this
+    }
+
+    /** Primeira letra maiúscula, o resto inalterado. Ex: `"olá mundo" → "Olá mundo"`. */
+    public capitalize(t: string): string {
+        if (!t) return ""
+        const chars = [...t]
+        const first = chars[0]
+        if (first === undefined) return ""
+        return first.toLocaleUpperCase(this.locale) + chars.slice(1).join("")
+    }
+
+    /** Cada palavra capitalizada. Ex: `"olá mundo" → "Olá Mundo"`. */
+    public titleCase(t: string): string {
+        if (!t) return ""
+        return t.replace(/\S+/g, (word) => {
+            const chars = [...word]
+            const first = chars[0]
+            if (first === undefined) return word
+            return (
+                first.toLocaleUpperCase(this.locale) +
+                chars.slice(1).join("").toLocaleLowerCase(this.locale)
+            )
+        })
+    }
+
+    /** Inverte preservando emoji/surrogate pairs. Ex: `"a😀b" → "b😀a"`. */
+    public reverse(t: string): string {
+        if (!t) return ""
+        return [...t].reverse().join("")
+    }
+
+    /** Remove acentos/diacríticos. Ex: `"ação" → "acao"`. */
+    public stripAccents(t: string): string {
+        if (!t) return ""
+        return t.normalize("NFD").replace(/\p{Diacritic}/gu, "")
+    }
+
+    /** Gera um slug url-safe. Ex: `"Olá, Mundo!" → "ola-mundo"`. */
+    public slug(t: string): string {
+        if (!t) return ""
+        return this.stripAccents(t)
+            .toLowerCase()
+            .trim()
+            .replace(/[^\w\s-]/g, "")
+            .replace(/[\s_-]+/g, "-")
+            .replace(/^-+|-+$/g, "")
     }
 
     /**
-     * Converte um número grande em uma string formatada com unidade (K, M, B)
-     * @param {number} number - Número a ser convertido
-     * @returns {string} - String formatada com unidade
+     * Trunca para no máximo `size` caracteres (incluindo as reticências, que
+     * entram no orçamento — o resultado nunca excede `size`).
+     * @param opts `ellipsis` (default `"…"`) e `byWord` (não cortar no meio da palavra).
      */
-    public convertNumToShort(number: number): string {
-        if (number == null || number == 0) return "0"
+    public truncate(t: string, size: number, opts: TruncateOptions = {}): string {
+        const ellipsis = opts.ellipsis ?? "…"
+        const byWord = opts.byWord ?? false
+        if (!t) return ""
+        const chars = [...t]
+        if (chars.length <= size) return t
+        const ellipsisLength = [...ellipsis].length
+        const budget = Math.max(0, size - ellipsisLength)
+        let cut = chars.slice(0, budget).join("")
+        if (byWord) cut = cut.replace(/\s+\S*$/, "")
+        return cut + ellipsis
+    }
 
-        // Convert the number to a string
-        const numberStr: string = number.toString()
+    /**
+     * Trunca por número de palavras. Ex: `"a b c d", 2 → "a b…"`.
+     * @param ellipsis reticências quando há corte (default `"…"`).
+     */
+    public truncateWords(t: string, n: number, ellipsis: string = "…"): string {
+        if (!t) return ""
+        const words = t.trim().split(/\s+/)
+        if (n <= 0) return ellipsis
+        if (words.length <= n) return t
+        return words.slice(0, n).join(" ") + ellipsis
+    }
 
-        // Invert the string for easier manipulation
-        const invertNumber: string = this.invertStr(numberStr)
+    /** Iniciais do nome. Ex: `"João Silva" → "JS"`; `"Maria Clara Souza", 2 → "MC"`. */
+    public initials(name: string, max: number = 2): string {
+        if (!name) return ""
+        const words = name.trim().split(/\s+/).filter(Boolean)
+        return words
+            .slice(0, Math.max(0, max))
+            .map((w) => {
+                const first = [...w][0]
+                return first ? first.toLocaleUpperCase(this.locale) : ""
+            })
+            .join("")
+    }
 
-        // Check the length of the number string and format accordingly
-        if (numberStr.length < 4) {
-            // Numbers less than 1000 remain unchanged
-            return number.toString()
-        } else if (numberStr.length > 3 && numberStr.length < 7) {
-            // Format for thousands (K)
-            if (numberStr.length === 4) {
-                return (
-                    this.invertStr(invertNumber.substring(3, 6)) +
-                    "." +
-                    this.invertStr(invertNumber.substring(2, 3)) +
-                    " K"
-                )
-            } else {
-                return this.invertStr(invertNumber.substring(3, 6)) + " K"
-            }
-        } else if (numberStr.length > 6 && numberStr.length < 10) {
-            // Format for millions (M)
-            if (numberStr.length === 7) {
-                return (
-                    this.invertStr(invertNumber.substring(6, 9)) +
-                    "." +
-                    this.invertStr(invertNumber.substring(5, 6)) +
-                    " M"
-                )
-            } else {
-                return this.invertStr(invertNumber.substring(6, 9)) + " M"
-            }
-        } else if (numberStr.length > 9 && numberStr.length < 13) {
-            // Format for billions (B)
-            if (numberStr.length === 10) {
-                return (
-                    this.invertStr(invertNumber.substring(9, 12)) +
-                    "." +
-                    this.invertStr(invertNumber.substring(8, 9)) +
-                    " B"
-                )
-            } else {
-                return this.invertStr(invertNumber.substring(9, 12)) + " B"
-            }
-        } else {
-            // For numbers with more than 12 digits, return the rounded value
-            return Math.floor(Number(numberStr)).toString()
-        }
+    /** Troca tags `<br>` por quebras de linha reais. */
+    public brToNewlines(t: string): string {
+        if (!t) return ""
+        return t.replace(/<br\s*\/?>/gi, "\n")
+    }
+
+    // ── conveniências estáticas (locale default pt-BR) ──────────────────────
+    private static readonly defaultInstance = new TextFormatter()
+
+    public static capitalize(t: string): string {
+        return TextFormatter.defaultInstance.capitalize(t)
+    }
+    public static titleCase(t: string): string {
+        return TextFormatter.defaultInstance.titleCase(t)
+    }
+    public static reverse(t: string): string {
+        return TextFormatter.defaultInstance.reverse(t)
+    }
+    public static stripAccents(t: string): string {
+        return TextFormatter.defaultInstance.stripAccents(t)
+    }
+    public static slug(t: string): string {
+        return TextFormatter.defaultInstance.slug(t)
+    }
+    public static truncate(t: string, size: number, opts: TruncateOptions = {}): string {
+        return TextFormatter.defaultInstance.truncate(t, size, opts)
+    }
+    public static truncateWords(t: string, n: number, ellipsis: string = "…"): string {
+        return TextFormatter.defaultInstance.truncateWords(t, n, ellipsis)
+    }
+    public static initials(name: string, max: number = 2): string {
+        return TextFormatter.defaultInstance.initials(name, max)
+    }
+    public static brToNewlines(t: string): string {
+        return TextFormatter.defaultInstance.brToNewlines(t)
+    }
+}
+
+// ────────────────────────────────────────────────────────────────────────────
+// Formatter (agregado)
+// ────────────────────────────────────────────────────────────────────────────
+
+/**
+ * Agregado de conveniência que espelha `transform.number` / `transform.text`.
+ * Propaga o mesmo `locale` para ambos os formatters.
+ */
+export class Formatter implements Configurable<FormatterConfig> {
+    public readonly config: Readonly<Required<FormatterConfig>>
+    public readonly number: NumberFormatter
+    public readonly text: TextFormatter
+
+    constructor(config: FormatterConfig = {}) {
+        this.config = Object.freeze(resolveConfig(config))
+        this.number = new NumberFormatter(this.config)
+        this.text = new TextFormatter(this.config)
+    }
+
+    public withConfig(patch: DeepPartial<FormatterConfig>): this {
+        const next = mergeConfig<FormatterConfig>(this.config, patch)
+        return new Formatter(next) as this
     }
 }

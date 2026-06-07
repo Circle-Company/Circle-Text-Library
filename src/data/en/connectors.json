@@ -1,0 +1,17 @@
+{
+    "but": 0.05,
+    "however": 0.05,
+    "although": 0.05,
+    "though": 0.05,
+    "yet": 0.05,
+    "nonetheless": 0.1,
+    "nevertheless": 0.1,
+    "still": 1.1,
+    "and": 1.0,
+    "also": 1.3,
+    "plus": 1.2,
+    "besides": 1.2,
+    "moreover": 1.3,
+    "furthermore": 1.3,
+    "additionally": 1.2
+}
