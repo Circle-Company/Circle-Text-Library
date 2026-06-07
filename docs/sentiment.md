@@ -2,8 +2,6 @@
 
 Análise de sentimento **léxico + regras** (intensificadores, negação, conectores, emojis, pontuação, repetição, ironia). **Sem LLM** — rápido, determinístico e explicável. Suporta **português (pt-BR, padrão)** e **inglês (en)**.
 
-> Arquitetura e fluxo: [`sentiment-flow.md`](./sentiment-flow.md)
-
 ```typescript
 import { SentimentExtractor } from "circle-text-library/sentiment"
 ```

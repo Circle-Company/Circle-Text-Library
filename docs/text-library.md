@@ -2,8 +2,6 @@
 
 `TextLibrary` é o **composition root**: é dona da config canônica, instancia cada engine e injeta a config — ou aceita uma **instância pronta** (DI). Ela expõe as **instâncias** (`ct.validator`, `ct.sentiment`, …), então você tem a API completa de cada engine.
 
-> Arquitetura geral: [`architecture-flow.md`](./architecture-flow.md)
-
 ```typescript
 import { TextLibrary } from "circle-text-library"
 ```

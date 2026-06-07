@@ -2,8 +2,6 @@
 
 Detecta **menções** (`@user`), **hashtags** (`#tag`), **URLs** e **e-mails** em uma única varredura e expõe o texto como um modelo de **segmentos** com posições. A partir desse modelo você deriva: extração, render seguro (HTML/tokens), métricas, preview e uma serialização mínima para guardar na URL/banco.
 
-> Arquitetura e fluxo: [`rich-text-flow.md`](./rich-text-flow.md) · [`rich-text-storage-flow.md`](./rich-text-storage-flow.md)
-
 ```typescript
 import { RichText } from "circle-text-library/rich-text"
 ```

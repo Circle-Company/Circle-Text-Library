@@ -2,8 +2,6 @@
 
 Extrai as **palavras-chave mais relevantes** de um texto em português. Tokeniza, normaliza gírias, reduz ao radical (stemming), remove stopwords e ranqueia por frequência com reforço para o início do texto.
 
-> Visão geral de arquitetura: [`architecture-flow.md`](./architecture-flow.md)
-
 ```typescript
 import { KeywordExtractor } from "circle-text-library/keywords"
 ```

@@ -68,3 +68,6 @@ debug_*.js
 
 # Agent / assistant local memory (not part of the library)
 memory/
+
+# Internal design/flow docs — local only, not part of the published documentation
+docs/flows/

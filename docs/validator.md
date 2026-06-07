@@ -2,8 +2,6 @@
 
 Validação **configurável e orientada a dados** para os campos típicos de uma rede social: `username`, `hashtag`, `url`, `description`, `name`, `password`. Você define a política **uma vez** e sobrescreve **regras pontuais** por chamada — o override **mescla** sobre a base (não substitui).
 
-> Arquitetura e fluxo de decisão: [`validators-flow.md`](./validators-flow.md) · [`rules-config-flow.md`](./rules-config-flow.md)
-
 ```typescript
 import { Validator, defineRules, charset, chars } from "circle-text-library/validator"
 ```

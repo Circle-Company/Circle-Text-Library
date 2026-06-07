@@ -6,8 +6,6 @@ Formatação **locale-aware** de números e texto, sobre `Intl` nativo. Três cl
 - **`TextFormatter`** — capitalização, slug, iniciais, truncamento (Unicode-safe), etc.
 - **`Formatter`** — agrega `number` + `text` compartilhando o mesmo `locale`.
 
-> Arquitetura e fluxo: [`formatter-flow.md`](./formatter-flow.md)
-
 ```typescript
 import { NumberFormatter, TextFormatter, Formatter } from "circle-text-library/conversor"
 ```

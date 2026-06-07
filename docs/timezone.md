@@ -2,8 +2,6 @@
 
 Formatação de datas e **tempo relativo** baseada em `Intl` nativo, com **horário de verão (DST) automático**. Use nomes **IANA** (ex.: `America/Sao_Paulo`), nunca offsets fixos. O relógio é **injetável**, o que torna os testes determinísticos.
 
-> Arquitetura e fluxo: [`timezone-flow.md`](./timezone-flow.md)
-
 ```typescript
 import { Timezone } from "circle-text-library/timezone"
 ```
