@@ -71,18 +71,21 @@ describe("SentimentExtractor - Sistema de Cache", () => {
     describe("Performance do Cache", () => {
         it("deve melhorar performance com cache", () => {
             const text = "produto muito bom e excelente"
+            const iterations = 200
 
-            // Primeira execução (sem cache)
-            const start1 = Date.now()
+            // Primeira execução (caminho frio = pipeline completo) popula o cache
+            const coldStart = Date.now()
             extractor.analyze(text)
-            const time1 = Date.now() - start1
+            const coldTime = Date.now() - coldStart
 
-            // Segunda execução (com cache)
-            const start2 = Date.now()
-            extractor.analyze(text)
-            const time2 = Date.now() - start2
+            // Execuções subsequentes batem no cache (caminho quente). Amortiza-se sobre
+            // muitas iterações para tirar o ruído do Date.now() (resolução de 1ms).
+            const warmStart = Date.now()
+            for (let i = 0; i < iterations; i++) extractor.analyze(text)
+            const warmAvg = (Date.now() - warmStart) / iterations
 
-            expect(time2).toBeLessThanOrEqual(time1)
+            // Em média, o caminho quente não pode ser mais lento que o frio (+1ms de folga p/ jitter).
+            expect(warmAvg).toBeLessThanOrEqual(coldTime + 1)
         })
 
         it("deve ter performance consistente com cache", () => {

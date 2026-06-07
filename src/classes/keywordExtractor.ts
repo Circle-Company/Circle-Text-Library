@@ -2,6 +2,8 @@ import PT_STOPWORDS from "../data/pt-br/stopwords.json" with { type: "json" }
 import PT_SUFFIXES from "../data/pt-br/suffixes.json" with { type: "json" }
 import PT_SLANG_MAP from "../data/pt-br/slangMap.json" with { type: "json" }
 
+import { Configurable, DeepPartial, mergeConfig } from "../core/config.js"
+
 const SLANG_MAP: Record<string, string> = PT_SLANG_MAP
 
 export interface KeywordExtractorConfig {
@@ -11,17 +13,29 @@ export interface KeywordExtractorConfig {
     boostFirstSentences?: boolean
 }
 
-export class KeywordExtractor {
+export class KeywordExtractor implements Configurable<KeywordExtractorConfig> {
+    readonly config: Readonly<KeywordExtractorConfig>
     private minWordLength: number
     private maxKeywords: number
     private stopwords: Set<string>
     private boostFirstSentences: boolean
 
-    constructor(config?: KeywordExtractorConfig) {
+    constructor(config: DeepPartial<KeywordExtractorConfig> = {}) {
+        this.config = config as KeywordExtractorConfig
         this.minWordLength = config?.minWordLength ?? 3
         this.maxKeywords = config?.maxKeywords ?? 5
         this.boostFirstSentences = config?.boostFirstSentences ?? true
         this.stopwords = new Set(config?.stopwords ?? PT_STOPWORDS)
+    }
+
+    /** Deriva um novo KeywordExtractor com a config mesclada (imutável). */
+    withConfig(patch: DeepPartial<KeywordExtractorConfig>): this {
+        return new KeywordExtractor(mergeConfig(this.config, patch)) as this
+    }
+
+    /** Atalho estático: extrai sem instanciar. */
+    static extract(text: string, config?: DeepPartial<KeywordExtractorConfig>): string[] {
+        return new KeywordExtractor(config).extract(text)
     }
 
     public extract(text: string): string[] {

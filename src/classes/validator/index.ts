@@ -1,6 +1,6 @@
-// Copyright 2025 Circle Company, Inc.
-// Licensed under the Circle License, Version 1.0
-import {
+// Copyright 2025 Circle LLC.
+// Licensed under the MIT License
+import type {
     DescriptionValidationRules,
     HashtagValidationRules,
     NameValidationRules,
@@ -9,13 +9,32 @@ import {
     UsernameValidationRules,
     ValidationConfig,
     ValidationResult
-} from "../../types"
+} from "./validator.types.js"
+import { Configurable, DeepPartial, mergeConfig } from "../../core/config.js"
 
-export class Validator {
-    private config: ValidationConfig
+// Reexporta os tipos públicos do Validator para manter a superfície de import.
+export type * from "./validator.types.js"
 
-    constructor(rules: ValidationConfig) {
-        this.config = rules
+export class Validator implements Configurable<ValidationConfig> {
+    private _config: ValidationConfig
+
+    constructor(rules: DeepPartial<ValidationConfig> = {}) {
+        this._config = rules as ValidationConfig
+    }
+
+    /** Config canônica (resolvida). */
+    get config(): Readonly<ValidationConfig> {
+        return this._config
+    }
+
+    /** Deriva um novo Validator com a base mesclada (imutável). */
+    withConfig(patch: DeepPartial<ValidationConfig>): this {
+        return new Validator(mergeConfig(this._config, patch)) as this
+    }
+
+    /** Define a base 1x e sobrescreve regras pontualmente, sem reinstanciar. */
+    with(overrides: DeepPartial<ValidationConfig>): Validator {
+        return new Validator(mergeConfig(this._config, overrides))
     }
 
     // === FUNÇÕES DE APLICAÇÃO DE REGRAS ===
@@ -913,7 +932,7 @@ export class Validator {
         }
 
         // Usar regras customizadas se fornecidas, senão usar configuração padrão
-        const rulesToUse = rules || this.config.url
+        const rulesToUse = mergeConfig(this.config.url, rules)
 
         if (rulesToUse) {
             // Validação específica de URL com regras
@@ -940,7 +959,7 @@ export class Validator {
         }
 
         // Usar regras customizadas se fornecidas, senão usar configuração padrão
-        const rulesToUse = rules || this.config.description
+        const rulesToUse = mergeConfig(this.config.description, rules)
 
         if (rulesToUse) {
             // Validação específica de descrição com regras
@@ -967,7 +986,7 @@ export class Validator {
         }
 
         // Usar regras customizadas se fornecidas, senão usar configuração padrão
-        const rulesToUse = rules || this.config.name
+        const rulesToUse = mergeConfig(this.config.name, rules)
 
         if (rulesToUse) {
             // Validação específica de nome com regras
@@ -994,7 +1013,7 @@ export class Validator {
         }
 
         // Usar regras customizadas se fornecidas, senão usar configuração padrão
-        const rulesToUse = rules || this.config.password
+        const rulesToUse = mergeConfig(this.config.password, rules)
 
         if (rulesToUse) {
             // Validação específica de senha com regras
@@ -1014,7 +1033,7 @@ export class Validator {
 
     // === MÉTODOS PÚBLICOS ===
     public username(username: string, rules?: UsernameValidationRules): ValidationResult {
-        const rulesToUse = rules || this.config.username
+        const rulesToUse = mergeConfig(this.config.username, rules)
         if (!rulesToUse) {
             throw new Error(
                 "Username validation rules must be provided either in constructor or as parameter"
@@ -1024,7 +1043,7 @@ export class Validator {
     }
 
     public hashtag(hashtag: string, rules?: HashtagValidationRules): ValidationResult {
-        const rulesToUse = rules || this.config.hashtag
+        const rulesToUse = mergeConfig(this.config.hashtag, rules)
         if (!rulesToUse) {
             throw new Error(
                 "Hashtag validation rules must be provided either in constructor or as parameter"
@@ -1053,59 +1072,11 @@ export class Validator {
         return this.validatePassword(password, rules)
     }
 
-    public getConfig(): ValidationConfig {
-        return { ...this.config }
-    }
-
-    public updateRules(newRules: Partial<ValidationConfig>): void {
-        this.config = { ...this.config, ...newRules }
-    }
-
-    // Métodos para compatibilidade com CircleText
-    public getUsernameValidator(): (username: string) => boolean {
-        return (username: string) => this.isValidUsername(username)
-    }
-
-    public getHashtagValidator(): (hashtag: string) => boolean {
-        return (hashtag: string) => this.isValidHashtag(hashtag)
-    }
-
-    public getUrlValidator(): (url: string) => boolean {
-        return (url: string) => this.isValidUrl(url)
-    }
-
-    public getDescriptionValidator(): (description: string) => boolean {
-        return (description: string) => this.isValidDescription(description)
-    }
-
-    // Funções de conveniência para compatibilidade com código existente
-    public isValidUsername(username: string, rules?: UsernameValidationRules): boolean {
-        const result = this.validateUsername(username, rules!)
-        return result.isValid
-    }
-
-    public isValidHashtag(hashtag: string, rules?: HashtagValidationRules): boolean {
-        const result = this.validateHashtag(hashtag, rules!)
-        return result.isValid
-    }
-
-    public isValidUrl(url: string, requireProtocol?: boolean, rules?: UrlValidationRules): boolean {
-        const result = this.validateUrl(url, requireProtocol, rules)
-        return result.isValid
-    }
-
-    public isValidDescription(description: string, rules?: DescriptionValidationRules): boolean {
-        const result = this.validateDescription(description, rules)
-        return result.isValid
-    }
-
-    public isValidName(name: string, rules?: NameValidationRules): boolean {
-        const result = this.validateName(name, rules)
-        return result.isValid
-    }
-
-    public isValidPassword(password: string, rules?: PasswordValidationRules): boolean {
-        const result = this.validatePassword(password, rules)
-        return result.isValid
+    public updateRules(newRules: DeepPartial<ValidationConfig>): void {
+        this._config = mergeConfig<ValidationConfig>(this._config, newRules)
     }
 }
+
+// Config enxuta e segura (charset/chars/pattern) + pré-processador defineRules.
+export { CharSet, Pattern, charset, chars, pattern, defineRules } from "./charset.js"
+export type { RuleInput, TerseValidationConfig } from "./charset.js"

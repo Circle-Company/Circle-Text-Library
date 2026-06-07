@@ -19,9 +19,7 @@ describe("SentimentExtractor - Análise Básica", () => {
                 enableIronyDetection: false,
                 enablePunctuationAnalysis: false,
                 enableRepetitionAnalysis: true,
-                enableContextAnalysis: false,
-                enableConnectorsAnalysis: true,
-                enablePositionWeight: true
+                enableContextAnalysis: false
             }
 
             const customExtractor = new SentimentExtractor(config)

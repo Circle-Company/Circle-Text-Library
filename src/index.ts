@@ -1,77 +1,95 @@
-// Copyright 2025 Circle Company, Inc.
-// Licensed under the Circle License, Version 1.0
+// Copyright 2025 Circle LLC
+// Licensed under the MIT License
 
-import {
-    CircleTextExtract,
-    CircleTextProps,
-    CircleTextTransform,
-    CircleTextValidation
-} from "./types"
-import { SentimentExtractor, SentimentReturnProps } from "./classes/sentimentExtractor/index.js"
-import { Timezone, TimezoneCodes } from "./classes/timezone/index.js"
-
-import { Conversor } from "./classes/conversor/index.js"
-import { ExtractOptions } from "./types"
-import { Extractor } from "./classes/extractor.js"
+import { Configurable, DeepPartial } from "./core/config.js"
+import { Validator } from "./classes/validator/index.js"
+import { SentimentExtractor } from "./classes/sentimentExtractor/index.js"
 import { KeywordExtractor } from "./classes/keywordExtractor.js"
 import { RichText } from "./classes/rich.text/index.js"
-import { Validator } from "./classes/validator/index.js"
+import { Timezone } from "./classes/timezone/index.js"
+import { Formatter } from "./classes/conversor/index.js"
 
-// Classe principal
+import type { ValidationConfig } from "./types.js"
+import type { SentimentExtractorConfig } from "./classes/sentimentExtractor/index.js"
+import type { KeywordExtractorConfig } from "./classes/keywordExtractor.js"
+import type { RichTextConfig } from "./classes/rich.text/index.js"
+import type { TimezoneConfig } from "./classes/timezone/index.js"
+import type { FormatterConfig } from "./classes/conversor/index.js"
+
+/** Cada slot aceita uma config (a mãe constrói a engine) OU uma instância pronta (DI). */
+export interface TextLibraryConfig {
+    validation?: DeepPartial<ValidationConfig> | Validator
+    sentiment?: DeepPartial<SentimentExtractorConfig> | SentimentExtractor
+    keywords?: DeepPartial<KeywordExtractorConfig> | KeywordExtractor
+    richText?: DeepPartial<RichTextConfig> | RichText
+    timezone?: DeepPartial<TimezoneConfig> | Timezone
+    format?: DeepPartial<FormatterConfig> | Formatter
+}
+
+// engine = qualquer coisa que implemente o contrato (tem withConfig); config = objeto simples
+const isEngine = (x: unknown): x is Configurable<unknown> =>
+    !!x && typeof (x as { withConfig?: unknown }).withConfig === "function"
+
+function build<T>(slot: unknown, make: (c: never) => T): T {
+    return isEngine(slot) ? (slot as unknown as T) : make(slot as never)
+}
+
+function applyPatch<T extends { withConfig(p: never): T }>(current: T, slot: unknown): T {
+    if (slot === undefined) return current
+    return isEngine(slot) ? (slot as unknown as T) : current.withConfig(slot as never)
+}
+
+/**
+ * Composition root: é dona da config canônica, instancia as engines e injeta a config de
+ * cada uma — ou aceita uma instância pronta (DI). Expõe as INSTÂNCIAS (API completa).
+ */
 export class TextLibrary {
-    public validate: CircleTextValidation
-    public extract: CircleTextExtract
-    public transform: CircleTextTransform
-    public richText: RichText
-    private conversor: Conversor
-    private validator: Validator
+    validator: Validator
+    sentiment: SentimentExtractor
+    keywords: KeywordExtractor
+    richText: RichText
+    timezone: Timezone
+    format: Formatter
 
-    constructor(config: CircleTextProps) {
-        // Inicializa o gerenciador de validação com regras customizadas
-        this.conversor = new Conversor()
-        this.validator = new Validator(config.validationRules)
-        this.richText = new RichText()
-        this.validate = {
-            username: this.validator.username.bind(this.validator),
-            hashtag: this.validator.hashtag.bind(this.validator),
-            url: this.validator.url.bind(this.validator),
-            description: this.validator.description.bind(this.validator),
-            name: this.validator.name.bind(this.validator),
-            password: this.validator.password.bind(this.validator)
-        }
+    constructor(config: TextLibraryConfig = {}) {
+        this.validator = build(config.validation, (c) => new Validator(c))
+        this.sentiment = build(config.sentiment, (c) => new SentimentExtractor(c))
+        this.keywords = build(config.keywords, (c) => new KeywordExtractor(c))
+        this.richText = build(config.richText, (c) => new RichText(undefined, c))
+        this.timezone = build(config.timezone, (c) => new Timezone(c))
+        this.format = build(config.format, (c) => new Formatter(c))
+    }
 
-        this.extract = {
-            content: (text: string, options?: ExtractOptions) => {
-                const extractor = new Extractor(text)
-                // Se nenhuma opção fornecida, extrair tudo por padrão
-                if (options === undefined) {
-                    return extractor.extract({ mentions: true, hashtags: true, urls: true })
-                }
-                return extractor.extract(options)
-            },
-            keywords: (text: string): string[] =>
-                new KeywordExtractor(config.keywordConfig).extract(text),
+    /** Edita regras no lugar: troca a engine afetada (merge sobre a config atual). */
+    configure(patch: TextLibraryConfig): this {
+        this.validator = applyPatch(this.validator, patch.validation)
+        this.sentiment = applyPatch(this.sentiment, patch.sentiment)
+        this.keywords = applyPatch(this.keywords, patch.keywords)
+        this.richText = applyPatch(this.richText, patch.richText)
+        this.timezone = applyPatch(this.timezone, patch.timezone)
+        this.format = applyPatch(this.format, patch.format)
+        return this
+    }
 
-            sentiment: (text: string): SentimentReturnProps =>
-                new SentimentExtractor(config.sentimentConfig).analyze(text)
-        }
-        this.transform = {
-            number: {
-                formatWithDots: this.conversor.formatNumWithDots,
-                convertToShortUnitText: this.conversor.convertNumToShortUnitText,
-                formatSliceWithDots: this.conversor.formatSliceNumWithDots
-            },
-            text: {
-                capitalizeFirstLetter: this.conversor.capitalizeFirstLetter,
-                richText: this.richText
-            },
-            timezone: new Timezone(config.timezoneConfig?.timezoneCode ?? TimezoneCodes.UTC)
-        }
+    /** Deriva um novo facade, reusando as engines não-tocadas (imutável). */
+    with(patch: TextLibraryConfig): TextLibrary {
+        const next = Object.create(TextLibrary.prototype) as TextLibrary
+        next.validator = applyPatch(this.validator, patch.validation)
+        next.sentiment = applyPatch(this.sentiment, patch.sentiment)
+        next.keywords = applyPatch(this.keywords, patch.keywords)
+        next.richText = applyPatch(this.richText, patch.richText)
+        next.timezone = applyPatch(this.timezone, patch.timezone)
+        next.format = applyPatch(this.format, patch.format)
+        return next
     }
 }
 
-// Exportar classes e tipos para uso direto
-export { Timezone, TimezoneCodes } from "./classes/timezone/index.js"
-export { RichText } from "./classes/rich.text/index.js"
-export { Conversor } from "./classes/conversor/index.js"
-export type { EntityMapping, RichTextEntity, RichTextUIFormat } from "./classes/rich.text/index.js"
+// === Reexports: classes, helpers e TODAS as tipagens da lib ===
+export * from "./core/config.js"
+export * from "./types.js"
+export * from "./classes/validator/index.js"
+export * from "./classes/sentimentExtractor/index.js"
+export * from "./classes/keywordExtractor.js"
+export * from "./classes/rich.text/index.js"
+export * from "./classes/timezone/index.js"
+export * from "./classes/conversor/index.js"

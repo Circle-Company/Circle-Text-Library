@@ -65,3 +65,6 @@ temp/
 
 # Test artifacts
 debug_*.js
+
+# Agent / assistant local memory (not part of the library)
+memory/

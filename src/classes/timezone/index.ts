@@ -1,123 +1,115 @@
-export enum TimezoneCodes {
-    UTC = "UTC",
-    BRT = "BRT",
-    BRST = "BRST",
-    EST = "EST",
-    EDT = "EDT",
-    CST = "CST",
-    CDT = "CDT",
-    MST = "MST",
-    MDT = "MDT",
-    PST = "PST",
-    PDT = "PDT",
-    AKST = "AKST",
-    AKDT = "AKDT",
-    HST = "HST"
-}
+// Copyright 2025 Circle LLC
+// Licensed under the MIT License
 
-export interface TimezoneConfig {
-    timezoneCode: TimezoneCodes
-}
+import { Configurable, DeepPartial, mergeConfig } from "../../core/config.js"
 
-export class Timezone {
-    private readonly timezone: number
-    private readonly code: TimezoneCodes
+import type { DateInput, TimezoneConfig } from "./timezone.types.js"
 
-    constructor(timezoneCode: TimezoneCodes) {
-        this.code = timezoneCode
-        this.timezone = this.setTimezone(timezoneCode)
+// Reexporta os tipos públicos para manter a superfície de import existente.
+export type * from "./timezone.types.js"
+
+/** Unidades para o tempo relativo, da menor para a maior. */
+const DIVISIONS: { amount: number; unit: Intl.RelativeTimeFormatUnit }[] = [
+    { amount: 60, unit: "second" },
+    { amount: 60, unit: "minute" },
+    { amount: 24, unit: "hour" },
+    { amount: 7, unit: "day" },
+    { amount: 4.34524, unit: "week" },
+    { amount: 12, unit: "month" },
+    { amount: Number.POSITIVE_INFINITY, unit: "year" }
+]
+
+/**
+ * Engine de timezone baseada nas APIs nativas `Intl`. Numa rede social o servidor
+ * grava em UTC e o cliente formata na hora de exibir, no fuso de quem lê — tudo
+ * com horário de verão tratado automaticamente.
+ */
+export class Timezone implements Configurable<TimezoneConfig> {
+    public readonly config: Readonly<TimezoneConfig>
+
+    private readonly zone: string
+    private readonly locale: string
+    private readonly now: () => Date
+
+    constructor(config: TimezoneConfig = {}) {
+        // exactOptionalPropertyTypes: só copiamos chaves realmente presentes.
+        const normalized: TimezoneConfig = {}
+        if (config.zone !== undefined) normalized.zone = config.zone
+        if (config.locale !== undefined) normalized.locale = config.locale
+        if (config.now !== undefined) normalized.now = config.now
+
+        this.config = normalized
+        this.zone = normalized.zone ?? Timezone.detect()
+        this.locale = normalized.locale ?? "pt-BR"
+        this.now = normalized.now ?? (() => new Date())
     }
 
-    public getTimezoneCodes(): TimezoneCodes[] {
-        return Object.values(TimezoneCodes)
-    }
-
-    public setTimezone(timezoneCode: TimezoneCodes): number {
-        if (timezoneCode == TimezoneCodes.UTC) return 0
-        if (timezoneCode == TimezoneCodes.BRT) return -3
-        if (timezoneCode == TimezoneCodes.BRST) return -2
-        if (timezoneCode == TimezoneCodes.EST) return -5
-        if (timezoneCode == TimezoneCodes.EDT) return -4
-        if (timezoneCode == TimezoneCodes.CST) return -6
-        if (timezoneCode == TimezoneCodes.CDT) return -5
-        if (timezoneCode == TimezoneCodes.MST) return -7
-        if (timezoneCode == TimezoneCodes.MDT) return -6
-        if (timezoneCode == TimezoneCodes.PST) return -8
-        if (timezoneCode == TimezoneCodes.PDT) return -7
-        if (timezoneCode == TimezoneCodes.AKST) return -9
-        if (timezoneCode == TimezoneCodes.AKDT) return -8
-        if (timezoneCode == TimezoneCodes.HST) return -10
-        return 0
-    }
-
-    public localToUTC(date: Date): Date {
-        if (!(date instanceof Date) || isNaN(date.getTime())) {
-            throw new Error("Data inválida fornecida")
-        }
-        return new Date(date.getTime() - this.timezone * 60 * 60 * 1000)
-    }
-
-    public UTCToLocal(date: Date): Date {
-        if (!(date instanceof Date) || isNaN(date.getTime())) {
-            throw new Error("Data inválida fornecida")
-        }
-        return new Date(date.getTime() + this.timezone * 60 * 60 * 1000)
-    }
-
-    public getTimezoneOffset(): number {
-        return this.timezone
-    }
-
-    public getCurrentTimezoneCode(): TimezoneCodes {
-        return this.code
-    }
-
-    public getCurrentTimezone(): TimezoneCodes {
-        const offset = new Date().getTimezoneOffset()
-        const ourOffset = -offset / 60
-
-        if (ourOffset === 0) return TimezoneCodes.UTC
-        if (ourOffset === -3) return TimezoneCodes.BRT
-        if (ourOffset === -2) return TimezoneCodes.BRST
-        if (ourOffset === -5) return TimezoneCodes.EST
-        if (ourOffset === -4) return TimezoneCodes.EDT
-        if (ourOffset === -6) return TimezoneCodes.CST
-        if (ourOffset === -5) return TimezoneCodes.CDT
-        if (ourOffset === -7) return TimezoneCodes.MST
-        if (ourOffset === -6) return TimezoneCodes.MDT
-        if (ourOffset === -8) return TimezoneCodes.PST
-        if (ourOffset === -7) return TimezoneCodes.PDT
-        if (ourOffset === -9) return TimezoneCodes.AKST
-        if (ourOffset === -8) return TimezoneCodes.AKDT
-        if (ourOffset === -10) return TimezoneCodes.HST
-
-        // Se não encontrar correspondência exata, retorna UTC
-        return TimezoneCodes.UTC
+    /** Fuso IANA do ambiente atual, ex.: "America/Sao_Paulo". */
+    public static detect(): string {
+        return Intl.DateTimeFormat().resolvedOptions().timeZone
     }
 
     /**
-     * Converte um número (offset em horas) para o código do timezone correspondente
-     * @param offset - Offset em horas (ex: 0 para UTC, -3 para BRT, -5 para EST)
-     * @returns TimezoneCodes - Código do timezone correspondente
-     *
-     * Exemplo:
-     * Timezone.getTimezoneFromOffset(0)   // TimezoneCodes.UTC
-     * Timezone.getTimezoneFromOffset(-3)  // TimezoneCodes.BRT
-     * Timezone.getTimezoneFromOffset(-5)  // TimezoneCodes.EST
+     * Formata um instante (UTC) para exibição. Horário de verão é tratado pelo
+     * `Intl`. Default: `{ dateStyle: "short", timeStyle: "short" }`.
      */
-    public getTimezoneFromOffset(offset: number): TimezoneCodes {
-        if (offset === 0) return TimezoneCodes.UTC
-        if (offset === -3) return TimezoneCodes.BRT
-        if (offset === -2) return TimezoneCodes.BRST
-        if (offset === -5) return TimezoneCodes.EST
-        if (offset === -4) return TimezoneCodes.EDT
-        if (offset === -6) return TimezoneCodes.CST
-        if (offset === -7) return TimezoneCodes.MST
-        if (offset === -8) return TimezoneCodes.PST
-        if (offset === -9) return TimezoneCodes.AKST
-        if (offset === -10) return TimezoneCodes.HST
+    public format(
+        input: DateInput,
+        options: Intl.DateTimeFormatOptions & { zone?: string } = {}
+    ): string {
+        const { zone, ...rest } = options
+        const hasExplicitStyle =
+            rest.dateStyle !== undefined ||
+            rest.timeStyle !== undefined ||
+            rest.year !== undefined ||
+            rest.month !== undefined ||
+            rest.day !== undefined ||
+            rest.hour !== undefined ||
+            rest.minute !== undefined ||
+            rest.second !== undefined ||
+            rest.weekday !== undefined ||
+            rest.era !== undefined
 
-        // Se não encontrar correspondência exata, retorna UTC
-        return TimezoneCodes.UTC
+        const defaults: Intl.DateTimeFormatOptions = hasExplicitStyle
+            ? {}
+            : { dateStyle: "short", timeStyle: "short" }
+
+        return new Intl.DateTimeFormat(this.locale, {
+            timeZone: zone ?? this.zone,
+            ...defaults,
+            ...rest
+        }).format(this.toDate(input))
+    }
+
+    /** Tempo relativo a agora: "há 3 horas", "agora", "ontem", "há 2 dias". */
+    public fromNow(input: DateInput): string {
+        let delta = (this.toDate(input).getTime() - this.now().getTime()) / 1000
+        const rtf = new Intl.RelativeTimeFormat(this.locale, { numeric: "auto" })
+
+        for (const { amount, unit } of DIVISIONS) {
+            if (Math.abs(delta) < amount) return rtf.format(Math.round(delta), unit)
+            delta /= amount
+        }
+        return rtf.format(Math.round(delta), "year")
+    }
+
+    /** Deriva uma nova engine imutável aplicando o patch sobre a config atual. */
+    public withConfig(patch: DeepPartial<TimezoneConfig>): this {
+        const merged = mergeConfig(this.config, patch)
+        return new Timezone(merged) as this
+    }
+
+    /** Normaliza ISO string / epoch ms / Date e valida. */
+    private toDate(input: DateInput): Date {
+        if (
+            input === null ||
+            input === undefined ||
+            (typeof input !== "string" && typeof input !== "number" && !(input instanceof Date))
+        ) {
+            throw new Error("Data inválida fornecida")
+        }
+        const date = input instanceof Date ? input : new Date(input)
+        if (isNaN(date.getTime())) throw new Error("Data inválida fornecida")
+        return date
     }
 }

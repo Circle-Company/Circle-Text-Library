@@ -139,5 +139,12 @@
     "máximos": 2.0,
     "mínimos": 0.5,
     "máximas": 2.0,
-    "mínimas": 0.5
+    "mínimas": 0.5,
+    "mega": 2.0,
+    "ultra": 2.0,
+    "hiper": 2.0,
+    "tao": 1.4,
+    "tão": 1.4,
+    "pacas": 1.6,
+    "horrores": 1.7
 }

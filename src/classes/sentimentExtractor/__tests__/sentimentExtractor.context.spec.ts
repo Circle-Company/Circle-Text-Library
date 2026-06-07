@@ -195,20 +195,16 @@ describe("SentimentExtractor - Análise de Contexto", () => {
             expect(result.intensity).toBeLessThan(1) // Intensidade normalizada
         })
 
-        it("deve funcionar sem peso por posição quando desabilitado", () => {
-            const customExtractor = new SentimentExtractor({
-                enablePositionWeight: false
-            })
+        it("deve manter sentimento positivo com palavra forte no início", () => {
+            const customExtractor = new SentimentExtractor()
 
             const result = customExtractor.analyze("excelente produto comum")
             expect(result.sentiment).toBe("positive")
             expect(result.intensity).toBeLessThan(0.96)
         })
 
-        it("deve funcionar sem análise de conectores quando desabilitada", () => {
-            const customExtractor = new SentimentExtractor({
-                enableConnectorsAnalysis: false
-            })
+        it("deve aplicar conectores adversativos por padrão", () => {
+            const customExtractor = new SentimentExtractor()
 
             const result = customExtractor.analyze("produto bom mas ruim")
             expect(result.sentiment).toBe("positive")

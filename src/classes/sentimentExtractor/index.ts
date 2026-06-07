@@ -1,57 +1,198 @@
-import CONNECTORS from "../../data/pt-br/connectors.json" with { type: "json" }
+// Copyright 2025 Circle LLC
+// Licensed under the MIT License
+
+import type { Configurable, DeepPartial } from "../../core/config.js"
+import { mergeConfig } from "../../core/config.js"
+
+// Emojis são universais: um único mapa compartilhado entre idiomas.
 import EMOJI_SCORES from "../../data/pt-br/emojiScore.json" with { type: "json" }
-import INTENSITY_WORDS from "../../data/pt-br/intensityWords.json" with { type: "json" }
-import IRONY_INDICATORS from "../../data/pt-br/ironyIndicators.json" with { type: "json" }
+
+// Léxicos pt-BR (idioma padrão).
+import PT_CONNECTORS from "../../data/pt-br/connectors.json" with { type: "json" }
+import PT_INTENSITY_WORDS from "../../data/pt-br/intensityWords.json" with { type: "json" }
+import PT_IRONY_MARKERS from "../../data/pt-br/ironyMarkers.json" with { type: "json" }
 import PT_SENTIMENT_WORDS from "../../data/pt-br/sentimentWords.json" with { type: "json" }
-import STOPWORDS from "../../data/pt-br/stopwords.json" with { type: "json" }
 
-export interface SentimentExtractorConfig {
-    enableCache?: boolean
-    enableEmojiAnalysis?: boolean
-    enablePunctuationAnalysis?: boolean
-    enableRepetitionAnalysis?: boolean
-    enableContextAnalysis?: boolean
-    enableIronyDetection?: boolean
-    enableConnectorsAnalysis?: boolean
-    enablePositionWeight?: boolean
+// Léxicos en (inglês).
+import EN_CONNECTORS from "../../data/en/connectors.json" with { type: "json" }
+import EN_INTENSITY_WORDS from "../../data/en/intensityWords.json" with { type: "json" }
+import EN_IRONY_MARKERS from "../../data/en/ironyMarkers.json" with { type: "json" }
+import EN_SENTIMENT_WORDS from "../../data/en/sentimentWords.json" with { type: "json" }
+
+import type {
+    AnalyzeOptions,
+    SentimentDriver,
+    SentimentExtractorConfig,
+    SentimentLanguage,
+    SentimentReturnProps
+} from "./sentimentExtractor.types.js"
+
+// Reexporta os tipos públicos para manter a superfície de import existente.
+export type * from "./sentimentExtractor.types.js"
+
+const DEFAULT_CACHE_MAX = 500
+const DEFAULT_LANGUAGE: SentimentLanguage = "pt-br"
+
+const DEFAULT_CONFIG: Required<
+    Pick<
+        SentimentExtractorConfig,
+        | "language"
+        | "enableCache"
+        | "enableEmojiAnalysis"
+        | "enablePunctuationAnalysis"
+        | "enableRepetitionAnalysis"
+        | "enableContextAnalysis"
+        | "enableIronyDetection"
+        | "cacheMax"
+    >
+> = {
+    language: DEFAULT_LANGUAGE,
+    enableCache: true,
+    enableEmojiAnalysis: true,
+    enablePunctuationAnalysis: true,
+    enableRepetitionAnalysis: true,
+    enableContextAnalysis: true,
+    enableIronyDetection: true,
+    cacheMax: DEFAULT_CACHE_MAX
 }
 
-export interface SentimentReturnProps {
-    intensity: number
-    sentiment: string
+/** Léxicos embutidos de um idioma (montados 1× por processo, reusados por instância). */
+interface LanguageLexicon {
+    sentiment: Record<string, number>
+    intensity: Record<string, number>
+    connectors: Record<string, number>
+    irony: string[]
+    /** Conectores adversativos: resetam (não multiplicam) o modificador de contexto. */
+    adversatives: string[]
 }
 
-export class SentimentExtractor {
-    private config: SentimentExtractorConfig
+// Registro de léxicos por idioma, montado 1× por processo (não por chamada/instância).
+const LEXICONS: Record<SentimentLanguage, LanguageLexicon> = {
+    "pt-br": {
+        sentiment: PT_SENTIMENT_WORDS as Record<string, number>,
+        intensity: PT_INTENSITY_WORDS as Record<string, number>,
+        connectors: PT_CONNECTORS as Record<string, number>,
+        irony: PT_IRONY_MARKERS as string[],
+        adversatives: ["mas", "porem", "entretanto", "contudo", "todavia"]
+    },
+    en: {
+        sentiment: EN_SENTIMENT_WORDS as Record<string, number>,
+        intensity: EN_INTENSITY_WORDS as Record<string, number>,
+        connectors: EN_CONNECTORS as Record<string, number>,
+        irony: EN_IRONY_MARKERS as string[],
+        adversatives: ["but", "however", "although", "though", "yet", "nonetheless", "nevertheless"]
+    }
+}
+
+export class SentimentExtractor implements Configurable<SentimentExtractorConfig> {
+    public readonly config: Readonly<SentimentExtractorConfig>
+
+    /** Idioma do léxico embutido em uso. */
+    public readonly language: SentimentLanguage
+
+    // Léxicos efetivos (base do idioma + custom mesclado). Reusados a cada chamada.
+    private readonly sentimentLex: Record<string, number>
+    private readonly intensityLex: Record<string, number>
+    private readonly connectors: Record<string, number>
+    private readonly ironyMarkers: string[]
+    private readonly adversatives: string[]
+    private readonly cacheMax: number
+
     private scoreCache: Map<string, number>
 
+    /** Instância default usada pelos atalhos estáticos. */
+    private static defaultInstance: SentimentExtractor | undefined
+
     constructor(config: SentimentExtractorConfig = {}) {
-        this.config = {
-            enableCache: true,
-            enableEmojiAnalysis: true,
-            enablePunctuationAnalysis: true,
-            enableRepetitionAnalysis: true,
-            enableContextAnalysis: true,
-            enableIronyDetection: true,
-            enableConnectorsAnalysis: true,
-            enablePositionWeight: true,
-            ...config
+        this.config = Object.freeze({ ...DEFAULT_CONFIG, ...config })
+
+        // Seleciona o léxico base pelo idioma (cai no padrão se desconhecido).
+        this.language = config.language ?? DEFAULT_LANGUAGE
+        const base = LEXICONS[this.language] ?? LEXICONS[DEFAULT_LANGUAGE]
+        this.adversatives = base.adversatives
+
+        // Léxico de sentimento: base do idioma + lexicon custom.
+        this.sentimentLex = config.lexicon
+            ? { ...base.sentiment, ...config.lexicon }
+            : base.sentiment
+
+        // Intensidade: base + intensificadores custom (>0) + negadores custom (<0).
+        const hasCustomIntensity =
+            (config.intensifiers && Object.keys(config.intensifiers).length > 0) ||
+            (config.negators && config.negators.length > 0)
+        if (hasCustomIntensity) {
+            const merged: Record<string, number> = { ...base.intensity }
+            if (config.intensifiers) Object.assign(merged, config.intensifiers)
+            if (config.negators) {
+                for (const neg of config.negators) {
+                    const norm = this.normalizeWord(neg.toLowerCase())
+                    // Negadores entram com valor negativo: o motor trata < 0 como negação.
+                    if (merged[norm] === undefined || merged[norm] >= 0) merged[norm] = -0.5
+                }
+            }
+            this.intensityLex = merged
+        } else {
+            this.intensityLex = base.intensity
         }
 
+        this.connectors = base.connectors
+        this.ironyMarkers = config.ironyMarkers
+            ? [...base.irony, ...config.ironyMarkers.map((m) => m.toLowerCase())]
+            : base.irony
+
+        this.cacheMax =
+            typeof config.cacheMax === "number" && config.cacheMax > 0
+                ? config.cacheMax
+                : DEFAULT_CACHE_MAX
+
         this.scoreCache = new Map()
+    }
+
+    // ========================================
+    // CONTRATO Configurable
+    // ========================================
+
+    public withConfig(patch: DeepPartial<SentimentExtractorConfig>): this {
+        const next = mergeConfig<SentimentExtractorConfig>(
+            this.config as SentimentExtractorConfig,
+            patch
+        )
+        return new SentimentExtractor(next) as this
+    }
+
+    // ========================================
+    // ATALHOS ESTÁTICOS (sem `new`)
+    // ========================================
+
+    private static getDefault(): SentimentExtractor {
+        if (!SentimentExtractor.defaultInstance) {
+            SentimentExtractor.defaultInstance = new SentimentExtractor()
+        }
+        return SentimentExtractor.defaultInstance
+    }
+
+    /** Analisa um texto usando uma instância default (sem `new`). */
+    public static analyze(text: string, opts?: AnalyzeOptions): SentimentReturnProps {
+        return SentimentExtractor.getDefault().analyze(text, opts)
+    }
+
+    /** Analisa vários textos com a instância default. */
+    public static analyzeMany(texts: string[], opts?: AnalyzeOptions): SentimentReturnProps[] {
+        return SentimentExtractor.getDefault().analyzeMany(texts, opts)
     }
 
     // ========================================
     // MÉTODO PRINCIPAL DE ANÁLISE
     // ========================================
 
-    public analyze(text: string): SentimentReturnProps {
+    public analyze(text: string, opts?: AnalyzeOptions): SentimentReturnProps {
         // ETAPA 1: Validação de entrada
-        if (!text) return { intensity: 0, sentiment: "neutral" }
+        if (!text) return this.shape(0, "neutral")
 
-        // ETAPA 2: Verificação de cache
-        if (this.config.enableCache && this.scoreCache.has(text)) {
-            const cachedScore = this.scoreCache.get(text)!
+        // ETAPA 2: Verificação de cache (não cacheável quando explain, pois drivers
+        // não cabem no cache de score numérico — mas o cálculo é o mesmo).
+        if (this.config.enableCache && !opts?.explain && this.scoreCache.has(text)) {
+            const cachedScore = this.cacheGet(text)!
             return this.determineSentiment(cachedScore)
         }
 
@@ -59,7 +200,7 @@ export class SentimentExtractor {
         const tokens = this.tokenizeAndNormalize(text)
 
         // ETAPA 4: Cálculo do score base (análise de sentimento principal)
-        let baseScore = this.calculateSentimentScore(tokens)
+        const { score: baseScore, drivers } = this.calculateSentimentScore(tokens)
 
         // ETAPA 5: Análises adicionais de texto (se habilitadas)
         const emojiScore = this.config.enableEmojiAnalysis ? this.analyzeEmojis(text) : 0
@@ -84,29 +225,42 @@ export class SentimentExtractor {
 
         // ETAPA 7: Determinar sentimento e cachear resultado
         const result = this.determineSentiment(finalScore)
-        if (this.config.enableCache) {
-            this.scoreCache.set(text, finalScore)
+        if (this.config.enableCache && !opts?.explain) {
+            this.cacheSet(text, finalScore)
         }
 
+        if (opts?.explain) {
+            return { ...result, drivers }
+        }
         return result
+    }
+
+    /** Analisa uma lista de textos, reutilizando os léxicos já montados. */
+    public analyzeMany(texts: string[], opts?: AnalyzeOptions): SentimentReturnProps[] {
+        return texts.map((t) => this.analyze(t, opts))
     }
 
     // ========================================
     // ANÁLISE DE SENTIMENTO REFINADA COM MULTIPLICADORES AVANÇADOS
     // ========================================
 
-    private calculateSentimentScore(tokens: string[]): number {
+    private calculateSentimentScore(tokens: string[]): {
+        score: number
+        drivers: SentimentDriver[]
+    } {
         let score = 0
         let intensityMultiplier = 1.0
         let negationCount = 0
         let contextModifier = 1.0
+        const drivers: SentimentDriver[] = []
 
         for (let i = 0; i < tokens.length; i++) {
             const token = tokens[i]
+            if (token === undefined) continue
 
-            // Análise de negação
-            if (token && INTENSITY_WORDS.hasOwnProperty(token)) {
-                const intensityValue = INTENSITY_WORDS[token as keyof typeof INTENSITY_WORDS]
+            // Análise de negação / intensificação
+            if (token && Object.prototype.hasOwnProperty.call(this.intensityLex, token)) {
+                const intensityValue = this.intensityLex[token] as number
 
                 if (intensityValue < 0) {
                     // Palavra de negação
@@ -120,11 +274,10 @@ export class SentimentExtractor {
             }
 
             // Análise de conectores
-
-            const connectorValue = CONNECTORS[token as keyof typeof CONNECTORS]
+            const connectorValue = this.connectors[token as keyof typeof this.connectors]
             if (connectorValue !== undefined) {
                 // Conectores adversativos têm efeito mais forte
-                if (token && ["mas", "porem", "entretanto", "contudo"].includes(token)) {
+                if (token && this.adversatives.includes(token)) {
                     contextModifier = connectorValue // Reset para valor adversativo
                 } else {
                     contextModifier *= connectorValue
@@ -133,8 +286,7 @@ export class SentimentExtractor {
             }
 
             // Análise de sentimentos
-            //@ts-ignore
-            const baseScore = PT_SENTIMENT_WORDS[token]
+            const baseScore = this.sentimentLex[token as keyof typeof this.sentimentLex]
             if (baseScore !== undefined) {
                 let wordScore = baseScore
 
@@ -142,7 +294,8 @@ export class SentimentExtractor {
                 wordScore *= intensityMultiplier
 
                 // Aplica negação
-                if (negationCount % 2 === 1) {
+                const negated = negationCount % 2 === 1
+                if (negated) {
                     wordScore *= -1
                 }
 
@@ -152,6 +305,13 @@ export class SentimentExtractor {
                 // Adiciona ao score total
                 score += wordScore
 
+                drivers.push({
+                    word: token,
+                    base: baseScore,
+                    applied: parseFloat(wordScore.toFixed(3)),
+                    ...(negated ? { reason: "negado" } : {})
+                })
+
                 // Reset para próxima palavra
                 intensityMultiplier = 1.0
                 negationCount = 0
@@ -159,7 +319,7 @@ export class SentimentExtractor {
             }
         }
 
-        return parseFloat(score.toFixed(3))
+        return { score: parseFloat(score.toFixed(3)), drivers }
     }
 
     // ========================================
@@ -172,6 +332,8 @@ export class SentimentExtractor {
 
         return normalizedText
             .toLowerCase()
+            // Remove apóstrofos para juntar contrações (en): "don't" → "dont", "it's" → "its".
+            .replace(/['’]/g, "")
             .replace(/[^\w\s]/g, " ")
             .split(/\s+/)
             .filter((word) => word.length > 0)
@@ -327,13 +489,11 @@ export class SentimentExtractor {
 
         // Análise de conexão entre palavras
         for (let i = 0; i < tokens.length - 1; i++) {
-            const current = tokens[i]
-            const next = tokens[i + 1]
+            const current = tokens[i] as keyof typeof this.sentimentLex
+            const next = tokens[i + 1] as keyof typeof this.sentimentLex
 
-            //@ts-ignore
-            const currentScore = PT_SENTIMENT_WORDS[current]
-            //@ts-ignore
-            const nextScore = PT_SENTIMENT_WORDS[next]
+            const currentScore = this.sentimentLex[current]
+            const nextScore = this.sentimentLex[next]
 
             if (currentScore !== undefined && nextScore !== undefined) {
                 // Palavras de sentimento próximas se reforçam
@@ -345,8 +505,9 @@ export class SentimentExtractor {
     }
 
     private detectIrony(text: string): number {
-        const hasIrony = IRONY_INDICATORS.some((indicator: string) =>
-            text.toLowerCase().includes(indicator.toLowerCase())
+        const lower = text.toLowerCase()
+        const hasIrony = this.ironyMarkers.some((indicator) =>
+            lower.includes(indicator.toLowerCase())
         )
         return hasIrony ? 0 : 1
     }
@@ -355,16 +516,20 @@ export class SentimentExtractor {
     // MÉTODOS PÚBLICOS E UTILITÁRIOS
     // ========================================
 
+    private shape(intensity: number, sentiment: string): SentimentReturnProps {
+        return { intensity, sentiment }
+    }
+
     private determineSentiment(score: number): SentimentReturnProps {
         // Normalizar intensidade para valores entre 0 e 1
-        const normalizedIntensity = this.normalizeIntensity(score)
+        const normalizedIntensity = parseFloat(this.normalizeIntensity(score).toFixed(3))
 
         if (score > 0.05) {
-            return { intensity: parseFloat(normalizedIntensity.toFixed(3)), sentiment: "positive" }
+            return this.shape(normalizedIntensity, "positive")
         } else if (score < -0.05) {
-            return { intensity: parseFloat(normalizedIntensity.toFixed(3)), sentiment: "negative" }
+            return this.shape(normalizedIntensity, "negative")
         } else {
-            return { intensity: parseFloat(normalizedIntensity.toFixed(3)), sentiment: "neutral" }
+            return this.shape(normalizedIntensity, "neutral")
         }
     }
 
@@ -383,6 +548,30 @@ export class SentimentExtractor {
         // Para valores extremos, aplicar compressão logarítmica
         if (score > 0) return Math.max(0.1, Math.min(0.9, 1 - 1 / (1 + score)))
         else return Math.max(-0.9, Math.min(-0.1, -(1 / (1 + Math.abs(score)))))
+    }
+
+    // ========================================
+    // CACHE LRU
+    // ========================================
+
+    private cacheGet(text: string): number | undefined {
+        if (!this.scoreCache.has(text)) return undefined
+        // Reordena para marcar como recém-usado (LRU).
+        const value = this.scoreCache.get(text)!
+        this.scoreCache.delete(text)
+        this.scoreCache.set(text, value)
+        return value
+    }
+
+    private cacheSet(text: string, value: number): void {
+        if (this.scoreCache.has(text)) this.scoreCache.delete(text)
+        this.scoreCache.set(text, value)
+        // Descarta o mais antigo ao passar do teto.
+        while (this.scoreCache.size > this.cacheMax) {
+            const oldest = this.scoreCache.keys().next().value
+            if (oldest === undefined) break
+            this.scoreCache.delete(oldest)
+        }
     }
 
     public clearCache(): void {

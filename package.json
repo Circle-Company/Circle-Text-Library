@@ -1,31 +1,57 @@
 {
     "name": "circle-text-library",
-    "version": "1.0.53",
-    "description": "Biblioteca JavaScript/TypeScript para validação, extração e análise de texto, desenvolvida para o Circle App",
+    "version": "2.0.0",
+    "description": "Biblioteca JavaScript/TypeScript para validação, extração e análise de texto (sentimento pt-BR/inglês, keywords, rich text, timezone, formatação), desenvolvida para o Circle App",
     "type": "module",
     "main": "./dist/src/index.js",
     "module": "./dist/src/index.js",
     "types": "./dist/src/index.d.ts",
     "exports": {
         ".": {
+            "types": "./dist/src/index.d.ts",
             "import": "./dist/src/index.js",
-            "require": "./dist/src/index.js",
-            "types": "./dist/src/index.d.ts"
+            "require": "./dist/src/index.js"
         },
         "./timezone": {
+            "types": "./dist/src/classes/timezone/index.d.ts",
             "import": "./dist/src/classes/timezone/index.js",
-            "require": "./dist/src/classes/timezone/index.js",
-            "types": "./dist/src/classes/timezone/index.d.ts"
+            "require": "./dist/src/classes/timezone/index.js"
         },
         "./sentiment": {
+            "types": "./dist/src/classes/sentimentExtractor/index.d.ts",
             "import": "./dist/src/classes/sentimentExtractor/index.js",
-            "require": "./dist/src/classes/sentimentExtractor/index.js",
-            "types": "./dist/src/classes/sentimentExtractor/index.d.ts"
+            "require": "./dist/src/classes/sentimentExtractor/index.js"
+        },
+        "./validator": {
+            "types": "./dist/src/classes/validator/index.d.ts",
+            "import": "./dist/src/classes/validator/index.js",
+            "require": "./dist/src/classes/validator/index.js"
+        },
+        "./rich-text": {
+            "types": "./dist/src/classes/rich.text/index.d.ts",
+            "import": "./dist/src/classes/rich.text/index.js",
+            "require": "./dist/src/classes/rich.text/index.js"
+        },
+        "./conversor": {
+            "types": "./dist/src/classes/conversor/index.d.ts",
+            "import": "./dist/src/classes/conversor/index.js",
+            "require": "./dist/src/classes/conversor/index.js"
+        },
+        "./keywords": {
+            "types": "./dist/src/classes/keywordExtractor.d.ts",
+            "import": "./dist/src/classes/keywordExtractor.js",
+            "require": "./dist/src/classes/keywordExtractor.js"
+        },
+        "./core": {
+            "types": "./dist/src/core/index.d.ts",
+            "import": "./dist/src/core/index.js",
+            "require": "./dist/src/core/index.js"
         }
     },
     "files": [
         "dist",
         "README.md",
+        "LICENCE",
         "LICENSE"
     ],
     "scripts": {
@@ -51,8 +77,8 @@
         "typescript",
         "javascript"
     ],
-    "author": "Circle Company LTDA",
-    "license": "CIRCLE-LICENSE-1.0",
+    "author": "Circle LLC",
+    "license": "MIT",
     "repository": {
         "type": "git",
         "url": "https://github.com/circle-company/circle-text-library.git"
