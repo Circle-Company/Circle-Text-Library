@@ -21,11 +21,12 @@ ct.sentiment.analyze("isso é ótimo demais")  // { sentiment: "positive", inten
 ct.keywords.extract("inteligência artificial revoluciona a programação")
 // ["intelig", "artifici", "revoluciona", "programacao"]
 ct.timezone.format("2024-01-15T15:30:00Z")   // data no fuso configurado
+ct.date.fromNow("2024-01-15T12:30:00Z")      // tempo relativo: "há 3 horas"
 ct.format.number.compact(12500)              // "12,5 mil"
 ct.format.text.slug("Olá Mundo")             // "ola-mundo"
 ```
 
-Slots disponíveis no construtor: `validation`, `sentiment`, `keywords`, `richText`, `timezone`, `format`. Cada um aceita **uma config** (a mãe constrói a engine) **ou** uma **instância pronta** (DI).
+Slots disponíveis no construtor: `validation`, `sentiment`, `keywords`, `richText`, `timezone`, `date`, `format`. Cada um aceita **uma config** (a mãe constrói a engine) **ou** uma **instância pronta** (DI). O slot `date` ([`DateFormatter`](./date.md)) conversa, por padrão, com o mesmo `Timezone` da fachada.
 
 > **Atenção ao RichText:** os métodos de instância do `RichText` operam sobre o texto do construtor, e o facade cria a engine sem texto. Para analisar textos avulsos, use o import dedicado (`RichText.parse(text)` / `new RichText(text, opts)`) — veja [`rich-text.md`](./rich-text.md). O slot `richText` serve sobretudo para carregar config/DI.
 
@@ -71,6 +72,7 @@ import { RichText } from "circle-text-library/rich-text"
 import { SentimentExtractor } from "circle-text-library/sentiment"
 import { KeywordExtractor } from "circle-text-library/keywords"
 import { Timezone } from "circle-text-library/timezone"
+import { DateFormatter } from "circle-text-library/date"
 import { NumberFormatter, TextFormatter } from "circle-text-library/conversor"
 ```
 
@@ -85,6 +87,6 @@ import type {
     TextLibraryConfig, Configurable, DeepPartial,
     ValidationConfig, ValidationResult,
     SentimentExtractorConfig, SentimentReturnProps, SentimentLanguage,
-    KeywordExtractorConfig, TimezoneConfig, FormatterConfig
+    KeywordExtractorConfig, TimezoneConfig, DateFormatterConfig, FormatterConfig
 } from "circle-text-library"
 ```

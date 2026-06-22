@@ -1,6 +1,6 @@
 {
     "name": "circle-text-library",
-    "version": "2.0.0",
+    "version": "2.1.0",
     "description": "Biblioteca JavaScript/TypeScript para validação, extração e análise de texto (sentimento pt-BR/inglês, keywords, rich text, timezone, formatação), desenvolvida para o Circle App",
     "type": "module",
     "main": "./dist/src/index.js",
@@ -16,6 +16,11 @@
             "types": "./dist/src/classes/timezone/index.d.ts",
             "import": "./dist/src/classes/timezone/index.js",
             "require": "./dist/src/classes/timezone/index.js"
+        },
+        "./date": {
+            "types": "./dist/src/classes/date/index.d.ts",
+            "import": "./dist/src/classes/date/index.js",
+            "require": "./dist/src/classes/date/index.js"
         },
         "./sentiment": {
             "types": "./dist/src/classes/sentimentExtractor/index.d.ts",
