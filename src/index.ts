@@ -7,6 +7,7 @@ import { SentimentExtractor } from "./classes/sentimentExtractor/index.js"
 import { KeywordExtractor } from "./classes/keywordExtractor.js"
 import { RichText } from "./classes/rich.text/index.js"
 import { Timezone } from "./classes/timezone/index.js"
+import { DateFormatter } from "./classes/date/index.js"
 import { Formatter } from "./classes/conversor/index.js"
 
 import type { ValidationConfig } from "./types.js"
@@ -14,6 +15,7 @@ import type { SentimentExtractorConfig } from "./classes/sentimentExtractor/inde
 import type { KeywordExtractorConfig } from "./classes/keywordExtractor.js"
 import type { RichTextConfig } from "./classes/rich.text/index.js"
 import type { TimezoneConfig } from "./classes/timezone/index.js"
+import type { DateFormatterConfig } from "./classes/date/index.js"
 import type { FormatterConfig } from "./classes/conversor/index.js"
 
 /** Cada slot aceita uma config (a mãe constrói a engine) OU uma instância pronta (DI). */
@@ -23,6 +25,7 @@ export interface TextLibraryConfig {
     keywords?: DeepPartial<KeywordExtractorConfig> | KeywordExtractor
     richText?: DeepPartial<RichTextConfig> | RichText
     timezone?: DeepPartial<TimezoneConfig> | Timezone
+    date?: DeepPartial<DateFormatterConfig> | DateFormatter
     format?: DeepPartial<FormatterConfig> | Formatter
 }
 
@@ -49,6 +52,7 @@ export class TextLibrary {
     keywords: KeywordExtractor
     richText: RichText
     timezone: Timezone
+    date: DateFormatter
     format: Formatter
 
     constructor(config: TextLibraryConfig = {}) {
@@ -57,6 +61,12 @@ export class TextLibrary {
         this.keywords = build(config.keywords, (c) => new KeywordExtractor(c))
         this.richText = build(config.richText, (c) => new RichText(undefined, c))
         this.timezone = build(config.timezone, (c) => new Timezone(c))
+        // DateFormatter conversa com o Timezone da fachada por padrão (DI), mas a
+        // config do usuário (locale/zone/instância própria) sempre tem precedência.
+        this.date = build(
+            config.date,
+            (c) => new DateFormatter({ timezone: this.timezone, ...(c as DateFormatterConfig) })
+        )
         this.format = build(config.format, (c) => new Formatter(c))
     }
 
@@ -67,6 +77,7 @@ export class TextLibrary {
         this.keywords = applyPatch(this.keywords, patch.keywords)
         this.richText = applyPatch(this.richText, patch.richText)
         this.timezone = applyPatch(this.timezone, patch.timezone)
+        this.date = applyPatch(this.date, patch.date)
         this.format = applyPatch(this.format, patch.format)
         return this
     }
@@ -79,6 +90,7 @@ export class TextLibrary {
         next.keywords = applyPatch(this.keywords, patch.keywords)
         next.richText = applyPatch(this.richText, patch.richText)
         next.timezone = applyPatch(this.timezone, patch.timezone)
+        next.date = applyPatch(this.date, patch.date)
         next.format = applyPatch(this.format, patch.format)
         return next
     }
@@ -92,4 +104,5 @@ export * from "./classes/sentimentExtractor/index.js"
 export * from "./classes/keywordExtractor.js"
 export * from "./classes/rich.text/index.js"
 export * from "./classes/timezone/index.js"
+export * from "./classes/date/index.js"
 export * from "./classes/conversor/index.js"

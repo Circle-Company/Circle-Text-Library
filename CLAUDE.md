@@ -31,7 +31,7 @@ npx vitest run -t "valida senha forte"                            # tests matchi
 
 - `validate` → `Validator` — `username`, `hashtag`, `url`, `description`, `name`, `password`
 - `extract` → `Extractor` (`content`), `KeywordExtractor` (`keywords`), `SentimentExtractor` (`sentiment`)
-- `transform` → `Conversor` (number/text formatting), `RichText`, `Timezone`
+- `transform` → `Conversor` (number/text formatting), `RichText`, `Timezone`, `DateFormatter` (customizable relative time; depends on `Timezone` for absolute formatting but is independently usable)
 
 Each specialized class lives under `src/classes/` and is independently usable; `TextLibrary` just composes them. `src/types.ts` holds the shared interface contracts (the `CircleText*` interfaces describe the facade's shape — note the class itself is named `TextLibrary`).
 

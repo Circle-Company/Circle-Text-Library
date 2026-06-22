@@ -7,6 +7,7 @@ Biblioteca **JavaScript/TypeScript** para **validação, extração e análise d
 - 🫀 **Sentimento** — léxico **pt-BR e inglês** + regras, com explicabilidade.
 - 🔍 **Keywords** — extração com stemming/stopwords pt-BR.
 - 🌍 **Timezone** — `Intl` nativo, com horário de verão automático.
+- 📅 **Datas** — tempo relativo **customizável** (pt-BR/en-US): "agora mesmo", "há 3 horas", "ontem".
 - 🔤 **Formatadores** — número/texto locale-aware.
 - 💉 **DI de verdade** — cada engine recebe config por construtor; a classe mãe só injeta.
 
@@ -66,6 +67,7 @@ Cada engine tem um guia detalhado com API, configuração e **casos de uso**:
 | 🫀 **SentimentExtractor** | `circle-text-library/sentiment` | [docs/sentiment.md](./docs/sentiment.md) |
 | 🔍 **KeywordExtractor** | `circle-text-library/keywords` | [docs/keywords.md](./docs/keywords.md) |
 | 🌍 **Timezone** | `circle-text-library/timezone` | [docs/timezone.md](./docs/timezone.md) |
+| 📅 **DateFormatter** | `circle-text-library/date` | [docs/date.md](./docs/date.md) |
 | 🔤 **Formatadores** | `circle-text-library/conversor` | [docs/formatter.md](./docs/formatter.md) |
 
 > **Decisões de arquitetura** (um `.md` de fluxo por engine): veja a pasta [`docs/`](./docs) (`*-flow.md`).
@@ -81,7 +83,7 @@ import type {
     TextLibraryConfig, Configurable, DeepPartial,
     ValidationConfig, ValidationResult,
     SentimentExtractorConfig, SentimentReturnProps, SentimentLanguage,
-    KeywordExtractorConfig, TimezoneConfig, FormatterConfig
+    KeywordExtractorConfig, TimezoneConfig, DateFormatterConfig, FormatterConfig
 } from "circle-text-library"
 ```
 
@@ -121,6 +123,7 @@ src/
 │   ├── sentimentExtractor/  # SentimentExtractor (pt-BR + en)
 │   ├── keywordExtractor.ts  # KeywordExtractor
 │   ├── timezone/            # Timezone (Intl)
+│   ├── date/                # DateFormatter (tempo relativo customizável)
 │   └── conversor/           # NumberFormatter / TextFormatter / Formatter
 └── data/
     ├── pt-br/               # léxicos e listas pt-BR (JSON estáticos)
